@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Successione Familiare</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;padding:2rem;min-height:100vh}
+h1{font-size:22px;font-weight:500;margin-bottom:4px;color:#1a1a1a}
+.subtitle{font-size:13px;color:#888;margin-bottom:2rem}
+.top-tabs{display:flex;gap:2px;margin-bottom:1.5rem;background:#e8e7e3;border-radius:12px;padding:4px}
+.top-tab{flex:1;padding:9px 4px;font-size:13px;font-weight:500;text-align:center;cursor:pointer;border:none;background:none;color:#666;border-radius:8px;transition:all .15s}
+.top-tab:hover{color:#1a1a1a}
+.top-tab.active{background:#fff;color:#1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,.08);border:0.5px solid rgba(0,0,0,.1)}
+.page{display:none}.page.active{display:block}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.kpi{background:#fff;border-radius:10px;padding:14px 16px;border:0.5px solid rgba(0,0,0,.08)}
+.kpi-l{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.kpi-v{font-size:22px;font-weight:500;color:#1a1a1a}
+.kpi-s{font-size:11px;color:#aaa;margin-top:3px}
+.sc-tabs{display:flex;gap:0;border-bottom:1px solid #e5e3de;margin-bottom:1.25rem}
+.sc-tab{padding:8px 16px;font-size:12px;font-weight:500;color:#888;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .15s}
+.sc-tab:hover{color:#1a1a1a}
+.sc-tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+.sp{display:none}.sp.active{display:block}
+.l-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
+.lc{border:0.5px solid #e5e3de;border-radius:12px;padding:16px;background:#fff;display:flex;flex-direction:column;gap:6px}
+.lc.t{border-top:3px solid #378ADD}
+.lc.f{border-top:3px solid #1D9E75}
+.lc.p{border-top:3px solid #BA7517}
+.lc-name{font-size:11px;font-weight:600;color:#888;letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px}
+.br{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid #f0ede8;gap:6px}
+.br:last-of-type{border-bottom:none}
+.bn{font-size:12px;color:#666;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bv{font-size:12px;font-weight:500;white-space:nowrap;color:#1a1a1a}
+.tg{font-size:10px;padding:1px 6px;border-radius:4px;margin-left:4px;white-space:nowrap}
+.tg-b{background:#FAECE7;color:#993C1D}
+.tg-g{background:#EAF3DE;color:#3B6D11}
+.tg-u{background:#E6F1FB;color:#185FA5}
+.tg-s{background:#FFF3CD;color:#856404}
+.lt{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;padding-top:10px;border-top:1px solid #e5e3de}
+.lt-l{font-size:12px;color:#888}
+.lt-v{font-size:17px;font-weight:500;color:#1a1a1a}
+.ld{font-size:11px;padding:3px 9px;border-radius:20px;text-align:right;margin-top:3px;font-weight:500}
+.ld-p{background:#EAF3DE;color:#3B6D11}
+.ld-n{background:#FCEBEB;color:#A32D2D}
+.ld-z{background:#f0ede8;color:#666}
+.rend{font-size:11px;color:#aaa;text-align:right;margin-top:2px}
+.note{background:#faf9f6;border-radius:10px;padding:14px 16px;font-size:13px;color:#666;line-height:1.6;margin-bottom:1.25rem;border-left:3px solid #e5e3de}
+.note b{color:#1a1a1a;font-weight:500}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.5rem}
+.cbox{border:0.5px solid #e5e3de;border-radius:12px;padding:16px;background:#fff}
+.ct{font-size:12px;font-weight:500;color:#888;margin-bottom:10px}
+.leg{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.li{display:flex;align-items:center;gap:6px;font-size:11px;color:#888}
+.ld2{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.recap-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:1.25rem;background:#fff;border-radius:12px;overflow:hidden;border:0.5px solid #e5e3de}
+.recap-table th{text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:#888;background:#faf9f6;border-bottom:1px solid #e5e3de;text-transform:uppercase;letter-spacing:.04em}
+.recap-table td{padding:10px 12px;border-bottom:0.5px solid #f0ede8;color:#1a1a1a;vertical-align:middle}
+.recap-table tr:last-child td{border-bottom:none}
+.recap-table tr:hover td{background:#faf9f6}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.pill-p{background:#EAF3DE;color:#3B6D11}
+.pill-n{background:#FCEBEB;color:#A32D2D}
+.pill-z{background:#f0ede8;color:#666}
+.stars{color:#BA7517;font-size:13px}
+.divider{border:none;border-top:1px solid #e5e3de;margin:1.25rem 0}
+.foot{font-size:11px;color:#aaa;line-height:1.7}
+.section-lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#aaa;margin-bottom:10px}
+.util-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.uc{background:#fff;border-radius:10px;padding:12px 14px;border:0.5px solid #e5e3de}
+.us{font-size:12px;font-weight:500;color:#1a1a1a}
+.ud{font-size:11px;color:#888;margin-top:4px;line-height:1.5}
+
+.coeff{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.coeff-aaa{background:#EAF3DE;color:#3B6D11}
+.coeff-aa{background:#FFF3CD;color:#856404}
+.coeff-a{background:#FCEBEB;color:#A32D2D}
+</style>
+</head>
+<body>
+
+<h1>Successione familiare — simulazione divisione</h1>
+<p class="subtitle">Valori catastali 2020 e stime di mercato 2025 &nbsp;·&nbsp; Aggiornato maggio 2025</p>
+
+<div class="top-tabs">
+  <button class="top-tab active" onclick="topTab(0)">Valori catastali</button>
+  <button class="top-tab" onclick="topTab(1)">Valori di mercato 2025</button>
+  <button class="top-tab" onclick="topTab(2)">Patrimonio &amp; coefficienti</button>
+  <button class="top-tab" onclick="topTab(3)">Confronto &amp; riepilogo</button>
+</div>
+
+<!-- PAGE 0: CATASTALE -->
+<div id="p0" class="page active">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-l">Patrimonio totale</div><div class="kpi-v">€3.892k</div><div class="kpi-s">valori catastali</div></div>
+    <div class="kpi"><div class="kpi-l">Quota ideale</div><div class="kpi-v">€1.297k</div><div class="kpi-s">patrimonio ÷ 3</div></div>
+    <div class="kpi"><div class="kpi-l">Gap max (Sc. A)</div><div class="kpi-v">€245k</div><div class="kpi-s">Francesca vs Paolo</div></div>
+    <div class="kpi"><div class="kpi-l">Gap pond. utilizzo</div><div class="kpi-v">€426k</div><div class="kpi-s">Francesca vs Paolo pond.</div></div>
+  </div>
+  <div class="sc-tabs">
+    <button class="sc-tab active" onclick="scTab('c',0)">A — Base</button>
+    <button class="sc-tab" onclick="scTab('c',1)">B — Gar.3 → Paolo</button>
+    <button class="sc-tab" onclick="scTab('c',2)">C — Strutturale</button>
+    <button class="sc-tab" onclick="scTab('c',3)">D — Conguaglio cash</button>
+  </div>
+
+  <div id="cs0" class="sp active">
+    <div class="l-grid">
+      <div class="lc t"><div class="lc-name">Tommaso</div>
+        <div class="br"><span class="bn">Fabio Massimo</span><span class="bv">€865k<span class="tg tg-g">in uso</span></span></div>
+        <div class="br"><span class="bn">Manara</span><span class="bv">€115k</span></div>
+        <div class="br"><span class="bn">Magenta 1</span><span class="bv">€86k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.066k</span></div>
+        <div class="ld ld-n">−€231k vs quota (−17.8%)</div><div class="rend">Rendita ~€15k/a</div>
+      </div>
+      <div class="lc f"><div class="lc-name">Francesca</div>
+        <div class="br"><span class="bn">App. 1 Fonte</span><span class="bv">€383k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">App. 2 Fonte</span><span class="bv">€945k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">Garage 3</span><span class="bv">€215k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.543k</span></div>
+        <div class="ld ld-p">+€246k vs quota (+19.0%)</div><div class="rend">Rendita ~€12k/a (solo Gar.3)</div>
+      </div>
+      <div class="lc p"><div class="lc-name">Paolo</div>
+        <div class="br"><span class="bn">Volpere Terreni</span><span class="bv">€871k</span></div>
+        <div class="br"><span class="bn">Volpere Cascina</span><span class="bv">€171k</span></div>
+        <div class="br"><span class="bn">Garage 1+2</span><span class="bv">€145k</span></div>
+        <div class="br"><span class="bn">Magenta 2</span><span class="bv">€97k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.284k</span></div>
+        <div class="ld ld-n">−€13k vs quota (−1.0%)</div><div class="rend">Rendita ~€37.8k/a</div>
+      </div>
+    </div>
+    <div class="note"><b>Giudizio:</b> Tommaso è il più penalizzato (−17.8%) nonostante viva già a Fabio Massimo. Francesca ha il surplus catastale più alto ma non può usare App.1+2. Richiede conguaglio differito o spostamento di beni.</div>
+  </div>
+
+  <div id="cs1" class="sp">
+    <div class="l-grid">
+      <div class="lc t"><div class="lc-name">Tommaso</div>
+        <div class="br"><span class="bn">Fabio Massimo</span><span class="bv">€865k<span class="tg tg-g">in uso</span></span></div>
+        <div class="br"><span class="bn">Manara</span><span class="bv">€115k</span></div>
+        <div class="br"><span class="bn">Magenta 1</span><span class="bv">€86k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.066k</span></div>
+        <div class="ld ld-n">−€231k vs quota (−17.8%)</div><div class="rend">Rendita ~€15k/a</div>
+      </div>
+      <div class="lc f"><div class="lc-name">Francesca</div>
+        <div class="br"><span class="bn">App. 1 Fonte</span><span class="bv">€383k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">App. 2 Fonte</span><span class="bv">€945k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.328k</span></div>
+        <div class="ld ld-p">+€31k vs quota (+2.4%)</div><div class="rend">Rendita ~€0 — conguaglio differito</div>
+      </div>
+      <div class="lc p"><div class="lc-name">Paolo</div>
+        <div class="br"><span class="bn">Volpere Terreni</span><span class="bv">€871k</span></div>
+        <div class="br"><span class="bn">Volpere Cascina</span><span class="bv">€171k</span></div>
+        <div class="br"><span class="bn">Garage 1+2</span><span class="bv">€145k</span></div>
+        <div class="br"><span class="bn">Magenta 2</span><span class="bv">€97k</span></div>
+        <div class="br"><span class="bn">Garage 3 ← da F</span><span class="bv">€215k<span class="tg tg-s">spostato</span></span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.499k</span></div>
+        <div class="ld ld-p">+€202k vs quota (+15.6%)</div><div class="rend">Rendita ~€49.8k/a</div>
+      </div>
+    </div>
+    <div class="note"><b>Giudizio:</b> Francesca quasi in pareggio (+2.4%), Paolo guadagna rendita immediata con Garage 3. Tommaso rimane sotto — compensato parzialmente dall'uso pregresso di Fabio Massimo.</div>
+  </div>
+
+  <div id="cs2" class="sp">
+    <div class="l-grid">
+      <div class="lc t"><div class="lc-name">Tommaso</div>
+        <div class="br"><span class="bn">Fabio Massimo</span><span class="bv">€865k<span class="tg tg-g">in uso</span></span></div>
+        <div class="br"><span class="bn">Magenta 2 ← da P</span><span class="bv">€97k<span class="tg tg-s">spostato</span></span></div>
+        <div class="br"><span class="bn">Magenta 1</span><span class="bv">€86k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.048k</span></div>
+        <div class="ld ld-n">−€249k vs quota (−19.2%)</div><div class="rend">Rendita ~€13.2k/a</div>
+      </div>
+      <div class="lc f"><div class="lc-name">Francesca</div>
+        <div class="br"><span class="bn">App. 1 Fonte</span><span class="bv">€383k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">App. 2 Fonte</span><span class="bv">€945k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.328k</span></div>
+        <div class="ld ld-p">+€31k vs quota (+2.4%)</div><div class="rend">Conguaglio ~€17k/a × 5a</div>
+      </div>
+      <div class="lc p"><div class="lc-name">Paolo</div>
+        <div class="br"><span class="bn">Volpere Terreni</span><span class="bv">€871k</span></div>
+        <div class="br"><span class="bn">Volpere Cascina</span><span class="bv">€171k</span></div>
+        <div class="br"><span class="bn">Garage 1+2</span><span class="bv">€145k</span></div>
+        <div class="br"><span class="bn">Garage 3 ← da F</span><span class="bv">€215k<span class="tg tg-s">spostato</span></span></div>
+        <div class="br"><span class="bn">Manara ← da T</span><span class="bv">€115k<span class="tg tg-s">spostato</span></span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.517k</span></div>
+        <div class="ld ld-p">+€220k vs quota (+17.0%)</div><div class="rend">Rendita ~€46.6k/a</div>
+      </div>
+    </div>
+    <div class="note"><b>Giudizio:</b> Massimo bilanciamento in beni fisici tra Francesca e Paolo. Tommaso resta il più basso ma l'uso pregresso di Fabio Massimo (€1.5-2k/m risparmiati) compensa nel tempo.</div>
+  </div>
+
+  <div id="cs3" class="sp">
+    <div class="l-grid">
+      <div class="lc t"><div class="lc-name">Tommaso</div>
+        <div class="br"><span class="bn">Fabio Massimo</span><span class="bv">€865k<span class="tg tg-g">in uso</span></span></div>
+        <div class="br"><span class="bn">Manara</span><span class="bv">€115k</span></div>
+        <div class="br"><span class="bn">Magenta 1</span><span class="bv">€86k</span></div>
+        <div class="br"><span class="bn">Conguaglio da F</span><span class="bv">€231k<span class="tg tg-u">cash</span></span></div>
+        <div class="lt"><span class="lt-l">Totale netto</span><span class="lt-v">€1.297k</span></div>
+        <div class="ld ld-z">€0 — pareggio perfetto</div><div class="rend">Rendita ~€15k/a</div>
+      </div>
+      <div class="lc f"><div class="lc-name">Francesca</div>
+        <div class="br"><span class="bn">App. 1 Fonte</span><span class="bv">€383k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">App. 2 Fonte</span><span class="bv">€945k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">Garage 3</span><span class="bv">€215k</span></div>
+        <div class="br"><span class="bn">Conguaglio a T+P</span><span class="bv">−€246k<span class="tg tg-b">uscita</span></span></div>
+        <div class="lt"><span class="lt-l">Totale netto</span><span class="lt-v">€1.297k</span></div>
+        <div class="ld ld-z">€0 — pareggio perfetto</div><div class="rend">Può vendere Gar.3 per finanziarsi</div>
+      </div>
+      <div class="lc p"><div class="lc-name">Paolo</div>
+        <div class="br"><span class="bn">Volpere Terreni</span><span class="bv">€871k</span></div>
+        <div class="br"><span class="bn">Volpere Cascina</span><span class="bv">€171k</span></div>
+        <div class="br"><span class="bn">Garage 1+2</span><span class="bv">€145k</span></div>
+        <div class="br"><span class="bn">Magenta 2</span><span class="bv">€97k</span></div>
+        <div class="br"><span class="bn">Conguaglio da F</span><span class="bv">€13k<span class="tg tg-u">cash</span></span></div>
+        <div class="lt"><span class="lt-l">Totale netto</span><span class="lt-v">€1.297k</span></div>
+        <div class="ld ld-z">€0 — pareggio perfetto</div><div class="rend">Rendita ~€37.8k/a</div>
+      </div>
+    </div>
+    <div class="note"><b>Giudizio:</b> Matematicamente perfetto. Francesca versa €246k totali — quasi interamente coperto dalla vendita di Garage 3 (€215k). Soluzione pulita e facile da formalizzare notarialmente.</div>
+  </div>
+</div>
+
+<!-- PAGE 1: MERCATO -->
+<div id="p1" class="page">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-l">Patrimonio totale</div><div class="kpi-v">€5.129k</div><div class="kpi-s">valori di mercato 2025</div></div>
+    <div class="kpi"><div class="kpi-l">Quota ideale</div><div class="kpi-v">€1.710k</div><div class="kpi-s">patrimonio ÷ 3</div></div>
+    <div class="kpi"><div class="kpi-l">Gap max (Sc. A)</div><div class="kpi-v">€853k</div><div class="kpi-s">Francesca vs Paolo</div></div>
+    <div class="kpi"><div class="kpi-l">Rivalutazione Roma</div><div class="kpi-v">+40/70%</div><div class="kpi-s">vs stime 2020</div></div>
+  </div>
+  <div class="sc-tabs">
+    <button class="sc-tab active" onclick="scTab('m',0)">A — Base</button>
+    <button class="sc-tab" onclick="scTab('m',1)">B — Gar.3 → Paolo</button>
+    <button class="sc-tab" onclick="scTab('m',2)">C — Strutturale</button>
+    <button class="sc-tab" onclick="scTab('m',3)">D — Conguaglio cash</button>
+  </div>
+
+  <div id="ms0" class="sp active">
+    <div class="l-grid">
+      <div class="lc t"><div class="lc-name">Tommaso</div>
+        <div class="br"><span class="bn">Fabio Massimo</span><span class="bv">€1.300k<span class="tg tg-g">in uso</span></span></div>
+        <div class="br"><span class="bn">Manara</span><span class="bv">€138k</span></div>
+        <div class="br"><span class="bn">Magenta 1</span><span class="bv">€104k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.542k</span></div>
+        <div class="ld ld-n">−€168k vs quota (−9.8%)</div><div class="rend">Rendita ~€15k/a</div>
+      </div>
+      <div class="lc f"><div class="lc-name">Francesca</div>
+        <div class="br"><span class="bn">App. 1 Fonte</span><span class="bv">€575k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">App. 2 Fonte</span><span class="bv">€1.400k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">Garage 3</span><span class="bv">€245k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€2.220k</span></div>
+        <div class="ld ld-p">+€510k vs quota (+29.8%)</div><div class="rend">Rendita ~€12k/a (solo Gar.3)</div>
+      </div>
+      <div class="lc p"><div class="lc-name">Paolo</div>
+        <div class="br"><span class="bn">Volpere Terreni</span><span class="bv">€990k</span></div>
+        <div class="br"><span class="bn">Volpere Cascina</span><span class="bv">€100k</span></div>
+        <div class="br"><span class="bn">Garage 1+2</span><span class="bv">€161k</span></div>
+        <div class="br"><span class="bn">Magenta 2</span><span class="bv">€116k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.367k</span></div>
+        <div class="ld ld-n">−€343k vs quota (−20.1%)</div><div class="rend">Rendita ~€37.8k/a</div>
+      </div>
+    </div>
+    <div class="note"><b>Giudizio:</b> A valori reali il gap è brutale: Francesca +€510k, Paolo −€343k. Insostenibile senza correttivi — il mercato romano ha corso molto di più di Brescia dal 2020.</div>
+  </div>
+
+  <div id="ms1" class="sp">
+    <div class="l-grid">
+      <div class="lc t"><div class="lc-name">Tommaso</div>
+        <div class="br"><span class="bn">Fabio Massimo</span><span class="bv">€1.300k<span class="tg tg-g">in uso</span></span></div>
+        <div class="br"><span class="bn">Manara</span><span class="bv">€138k</span></div>
+        <div class="br"><span class="bn">Magenta 1</span><span class="bv">€104k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.542k</span></div>
+        <div class="ld ld-n">−€168k vs quota (−9.8%)</div><div class="rend">Rendita ~€15k/a</div>
+      </div>
+      <div class="lc f"><div class="lc-name">Francesca</div>
+        <div class="br"><span class="bn">App. 1 Fonte</span><span class="bv">€575k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">App. 2 Fonte</span><span class="bv">€1.400k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.975k</span></div>
+        <div class="ld ld-p">+€265k vs quota (+15.5%)</div><div class="rend">Rendita ~€0 — conguaglio ~€17k/a × 5a</div>
+      </div>
+      <div class="lc p"><div class="lc-name">Paolo</div>
+        <div class="br"><span class="bn">Volpere Terreni</span><span class="bv">€990k</span></div>
+        <div class="br"><span class="bn">Volpere Cascina</span><span class="bv">€100k</span></div>
+        <div class="br"><span class="bn">Garage 1+2</span><span class="bv">€161k</span></div>
+        <div class="br"><span class="bn">Magenta 2</span><span class="bv">€116k</span></div>
+        <div class="br"><span class="bn">Garage 3 ← da F</span><span class="bv">€245k<span class="tg tg-s">spostato</span></span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.612k</span></div>
+        <div class="ld ld-p">+€102k vs quota (+6.0%)</div><div class="rend">Rendita ~€49.8k/a</div>
+      </div>
+    </div>
+    <div class="note"><b>Giudizio:</b> Soluzione elegante: un solo spostamento (Garage 3), Paolo quasi in pareggio. Francesca rimane in surplus ma coperto dal conguaglio differito. La più semplice da proporre in famiglia.</div>
+  </div>
+
+  <div id="ms2" class="sp">
+    <div class="l-grid">
+      <div class="lc t"><div class="lc-name">Tommaso</div>
+        <div class="br"><span class="bn">Fabio Massimo</span><span class="bv">€1.300k<span class="tg tg-g">in uso</span></span></div>
+        <div class="br"><span class="bn">Magenta 2 ← da P</span><span class="bv">€116k<span class="tg tg-s">spostato</span></span></div>
+        <div class="br"><span class="bn">Magenta 1</span><span class="bv">€104k</span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.520k</span></div>
+        <div class="ld ld-n">−€190k vs quota (−5.3%)</div><div class="rend">Rendita ~€13.2k/a</div>
+      </div>
+      <div class="lc f"><div class="lc-name">Francesca</div>
+        <div class="br"><span class="bn">App. 1 Fonte</span><span class="bv">€575k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">App. 2 Fonte</span><span class="bv">€1.400k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.975k</span></div>
+        <div class="ld ld-p">+€265k vs quota (+15.5%)</div><div class="rend">Conguaglio ~€8.5k/a a T + ~€8.5k/a a P</div>
+      </div>
+      <div class="lc p"><div class="lc-name">Paolo</div>
+        <div class="br"><span class="bn">Volpere Terreni</span><span class="bv">€990k</span></div>
+        <div class="br"><span class="bn">Volpere Cascina</span><span class="bv">€100k</span></div>
+        <div class="br"><span class="bn">Garage 1+2</span><span class="bv">€161k</span></div>
+        <div class="br"><span class="bn">Garage 3 ← da F</span><span class="bv">€245k<span class="tg tg-s">spostato</span></span></div>
+        <div class="br"><span class="bn">Manara ← da T</span><span class="bv">€138k<span class="tg tg-s">spostato</span></span></div>
+        <div class="lt"><span class="lt-l">Totale</span><span class="lt-v">€1.634k</span></div>
+        <div class="ld ld-n">−€76k vs quota (−4.4%)</div><div class="rend">Rendita ~€46.6k/a</div>
+      </div>
+    </div>
+    <div class="note"><b>Giudizio:</b> Il più bilanciato in beni fisici — tutti entro ±5.5% dalla quota ideale. Richiede più spostamenti da concordare ma nessun conguaglio in denaro rilevante.</div>
+  </div>
+
+  <div id="ms3" class="sp">
+    <div class="l-grid">
+      <div class="lc t"><div class="lc-name">Tommaso</div>
+        <div class="br"><span class="bn">Fabio Massimo</span><span class="bv">€1.300k<span class="tg tg-g">in uso</span></span></div>
+        <div class="br"><span class="bn">Manara</span><span class="bv">€138k</span></div>
+        <div class="br"><span class="bn">Magenta 1</span><span class="bv">€104k</span></div>
+        <div class="br"><span class="bn">Conguaglio da F</span><span class="bv">€168k<span class="tg tg-u">cash</span></span></div>
+        <div class="lt"><span class="lt-l">Totale netto</span><span class="lt-v">€1.710k</span></div>
+        <div class="ld ld-z">€0 — pareggio perfetto</div><div class="rend">Rendita ~€15k/a</div>
+      </div>
+      <div class="lc f"><div class="lc-name">Francesca</div>
+        <div class="br"><span class="bn">App. 1 Fonte</span><span class="bv">€575k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">App. 2 Fonte</span><span class="bv">€1.400k<span class="tg tg-b">bloccata</span></span></div>
+        <div class="br"><span class="bn">Garage 3</span><span class="bv">€245k</span></div>
+        <div class="br"><span class="bn">Conguaglio a T+P</span><span class="bv">−€511k<span class="tg tg-b">uscita</span></span></div>
+        <div class="lt"><span class="lt-l">Totale netto</span><span class="lt-v">€1.710k</span></div>
+        <div class="ld ld-z">€0 — pareggio perfetto</div><div class="rend">Vende Gar.3 (€245k) + €266k altro</div>
+      </div>
+      <div class="lc p"><div class="lc-name">Paolo</div>
+        <div class="br"><span class="bn">Volpere Terreni</span><span class="bv">€990k</span></div>
+        <div class="br"><span class="bn">Volpere Cascina</span><span class="bv">€100k</span></div>
+        <div class="br"><span class="bn">Garage 1+2</span><span class="bv">€161k</span></div>
+        <div class="br"><span class="bn">Magenta 2</span><span class="bv">€116k</span></div>
+        <div class="br"><span class="bn">Conguaglio da F</span><span class="bv">€343k<span class="tg tg-u">cash</span></span></div>
+        <div class="lt"><span class="lt-l">Totale netto</span><span class="lt-v">€1.710k</span></div>
+        <div class="ld ld-z">€0 — pareggio perfetto</div><div class="rend">Rendita ~€25.8k/a</div>
+      </div>
+    </div>
+    <div class="note"><b>Giudizio:</b> Perfetto matematicamente. Il problema è pratico: Francesca deve trovare €511k liquidi. Vendere Garage 3 copre €245k, restano €266k da trovare o rateizzare su 3-4 anni.</div>
+  </div>
+</div>
+
+
+<!-- PAGE 2: PATRIMONIO & COEFFICIENTI -->
+<div id="p2" class="page">
+
+  <p class="section-lbl">Quadro patrimoniale — valori a confronto</p>
+  <table class="recap-table" style="margin-bottom:1.75rem">
+    <thead><tr>
+      <th style="width:22%">Bene</th>
+      <th>Zona</th>
+      <th>Destinato a</th>
+      <th style="text-align:right">Val. catastale 2020</th>
+      <th style="text-align:right">Stima mercato 2025</th>
+      <th style="text-align:right">Rivalutazione</th>
+      <th>Coeff. utilizzo</th>
+      <th>Disponibilità</th>
+    </tr></thead>
+    <tbody>
+      <tr style="background:#EBF5FF">
+        <td colspan="8" style="font-size:11px;font-weight:600;color:#185FA5;letter-spacing:.05em;text-transform:uppercase;padding:8px 12px">Roma — Prati</td>
+      </tr>
+      <tr>
+        <td><b>Fabio Massimo</b></td>
+        <td>Prati, Roma</td>
+        <td><span class="pill" style="background:#E6F1FB;color:#185FA5">Tommaso</span></td>
+        <td style="text-align:right">€865k</td>
+        <td style="text-align:right;font-weight:500">€1.300k</td>
+        <td style="text-align:right"><span class="pill pill-p">+50%</span></td>
+        <td><span class="coeff coeff-aaa">★★★ 1.00</span></td>
+        <td>In uso — Tommaso ci vive</td>
+      </tr>
+      <tr style="background:#E8F4EE">
+        <td colspan="8" style="font-size:11px;font-weight:600;color:#0F6E56;letter-spacing:.05em;text-transform:uppercase;padding:8px 12px">Roma — Fonte di Fauno (Trieste/Salario)</td>
+      </tr>
+      <tr>
+        <td><b>App. 1 Fonte</b></td>
+        <td>Trieste, Roma</td>
+        <td><span class="pill" style="background:#E2EFDA;color:#3B6D11">Francesca</span></td>
+        <td style="text-align:right">€383k</td>
+        <td style="text-align:right;font-weight:500">€575k</td>
+        <td style="text-align:right"><span class="pill pill-p">+50%</span></td>
+        <td><span class="coeff coeff-a">★ 0.50</span></td>
+        <td>Occupata dai genitori</td>
+      </tr>
+      <tr>
+        <td><b>App. 2 Fonte</b></td>
+        <td>Trieste, Roma</td>
+        <td><span class="pill" style="background:#E2EFDA;color:#3B6D11">Francesca</span></td>
+        <td style="text-align:right">€945k</td>
+        <td style="text-align:right;font-weight:500">€1.400k</td>
+        <td style="text-align:right"><span class="pill pill-p">+48%</span></td>
+        <td><span class="coeff coeff-a">★ 0.50</span></td>
+        <td>Occupata dai genitori</td>
+      </tr>
+      <tr>
+        <td><b>Garage 3</b></td>
+        <td>Trieste, Roma</td>
+        <td><span class="pill" style="background:#E2EFDA;color:#3B6D11">Francesca</span></td>
+        <td style="text-align:right">€215k</td>
+        <td style="text-align:right;font-weight:500">€245k</td>
+        <td style="text-align:right"><span class="pill pill-p">+14%</span></td>
+        <td><span class="coeff coeff-aa">★★ 0.85</span></td>
+        <td>Libero — affittabile subito</td>
+      </tr>
+      <tr style="background:#FDF6E8">
+        <td colspan="8" style="font-size:11px;font-weight:600;color:#854F0B;letter-spacing:.05em;text-transform:uppercase;padding:8px 12px">Brescia — Remedello e dintorni</td>
+      </tr>
+      <tr>
+        <td><b>Volpere Terreni</b></td>
+        <td>Remedello, BS</td>
+        <td><span class="pill" style="background:#FFF3CD;color:#856404">Paolo</span></td>
+        <td style="text-align:right">€871k</td>
+        <td style="text-align:right;font-weight:500">€990k</td>
+        <td style="text-align:right"><span class="pill pill-p">+14%</span></td>
+        <td><span class="coeff coeff-aa">★★ 0.85</span></td>
+        <td>11 ha seminativo — bassa rendita</td>
+      </tr>
+      <tr>
+        <td><b>Volpere Cascina</b></td>
+        <td>Remedello, BS</td>
+        <td><span class="pill" style="background:#FFF3CD;color:#856404">Paolo</span></td>
+        <td style="text-align:right">€171k</td>
+        <td style="text-align:right;font-weight:500">€100k</td>
+        <td style="text-align:right"><span class="pill pill-n">−42%</span></td>
+        <td><span class="coeff coeff-aa">★★ 0.85</span></td>
+        <td>90 mq — affitto/uso</td>
+      </tr>
+      <tr>
+        <td><b>Garage 1</b></td>
+        <td>Brescia</td>
+        <td><span class="pill" style="background:#FFF3CD;color:#856404">Paolo</span></td>
+        <td style="text-align:right">€70k</td>
+        <td style="text-align:right;font-weight:500">€78k</td>
+        <td style="text-align:right"><span class="pill pill-p">+11%</span></td>
+        <td><span class="coeff coeff-aa">★★ 0.85</span></td>
+        <td>Affittabile subito</td>
+      </tr>
+      <tr>
+        <td><b>Garage 2</b></td>
+        <td>Brescia</td>
+        <td><span class="pill" style="background:#FFF3CD;color:#856404">Paolo</span></td>
+        <td style="text-align:right">€75k</td>
+        <td style="text-align:right;font-weight:500">€83k</td>
+        <td style="text-align:right"><span class="pill pill-p">+11%</span></td>
+        <td><span class="coeff coeff-aa">★★ 0.85</span></td>
+        <td>Affittabile subito</td>
+      </tr>
+      <tr>
+        <td><b>Magenta 2</b></td>
+        <td>Brescia</td>
+        <td><span class="pill" style="background:#FFF3CD;color:#856404">Paolo</span></td>
+        <td style="text-align:right">€97k</td>
+        <td style="text-align:right;font-weight:500">€116k</td>
+        <td style="text-align:right"><span class="pill pill-p">+20%</span></td>
+        <td><span class="coeff coeff-aa">★★ 0.85</span></td>
+        <td>Affittabile subito</td>
+      </tr>
+      <tr>
+        <td><b>Manara</b></td>
+        <td>Brescia</td>
+        <td><span class="pill" style="background:#E6F1FB;color:#185FA5">Tommaso</span></td>
+        <td style="text-align:right">€115k</td>
+        <td style="text-align:right;font-weight:500">€138k</td>
+        <td style="text-align:right"><span class="pill pill-p">+20%</span></td>
+        <td><span class="coeff coeff-aa">★★ 0.85</span></td>
+        <td>Affittabile subito</td>
+      </tr>
+      <tr>
+        <td><b>Magenta 1</b></td>
+        <td>Brescia</td>
+        <td><span class="pill" style="background:#E6F1FB;color:#185FA5">Tommaso</span></td>
+        <td style="text-align:right">€86k</td>
+        <td style="text-align:right;font-weight:500">€104k</td>
+        <td style="text-align:right"><span class="pill pill-p">+21%</span></td>
+        <td><span class="coeff coeff-aa">★★ 0.85</span></td>
+        <td>Affittabile subito</td>
+      </tr>
+      <tr style="background:#f5f4f0;font-weight:500">
+        <td><b>TOTALE</b></td><td></td><td></td>
+        <td style="text-align:right">€3.892k</td>
+        <td style="text-align:right">€5.129k</td>
+        <td style="text-align:right"><span class="pill pill-p">+32%</span></td>
+        <td></td><td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="section-lbl">Coefficienti di utilizzo — come funzionano</p>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem">
+
+    <div style="background:#fff;border:0.5px solid #e5e3de;border-radius:12px;padding:18px;border-top:3px solid #1D9E75">
+      <div style="font-size:20px;margin-bottom:8px;color:#1D9E75">★★★</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:4px">Già in uso</div>
+      <div style="font-size:26px;font-weight:500;color:#1D9E75;margin-bottom:10px">1.00</div>
+      <div style="font-size:12px;color:#666;line-height:1.6">Il beneficiario sta già godendo del bene. Il valore è <b>pieno e immediato</b> — non c'è attesa, non c'è incertezza.</div>
+      <div style="margin-top:12px;padding:10px;background:#EAF3DE;border-radius:8px;font-size:12px;color:#3B6D11">
+        <b>Esempio:</b> Fabio Massimo — Tommaso ci vive già. Ogni mese risparmia ~€1.500-2.000 di affitto.
+      </div>
+    </div>
+
+    <div style="background:#fff;border:0.5px solid #e5e3de;border-radius:12px;padding:18px;border-top:3px solid #BA7517">
+      <div style="font-size:20px;margin-bottom:8px;color:#BA7517">★★</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:4px">Reddito immediato</div>
+      <div style="font-size:26px;font-weight:500;color:#BA7517;margin-bottom:10px">0.85</div>
+      <div style="font-size:12px;color:#666;line-height:1.6">Il bene è libero e produce (o può produrre) reddito da subito tramite affitto o vendita. Piccolo sconto per gestione e tempo di messa a reddito.</div>
+      <div style="margin-top:12px;padding:10px;background:#FFF3CD;border-radius:8px;font-size:12px;color:#856404">
+        <b>Esempi:</b> Garage 3 (€12k/a), Magenta 1+2 (€6-7k/a), Volpere Terreni (€15k/a stima), Manara (€9k/a).
+      </div>
+    </div>
+
+    <div style="background:#fff;border:0.5px solid #e5e3de;border-radius:12px;padding:18px;border-top:3px solid #A32D2D">
+      <div style="font-size:20px;margin-bottom:8px;color:#A32D2D">★</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:4px">Disponibilità incerta</div>
+      <div style="font-size:26px;font-weight:500;color:#A32D2D;margin-bottom:10px">0.50</div>
+      <div style="font-size:12px;color:#666;line-height:1.6">Il bene è occupato e non monetizzabile nel breve termine. Il valore esiste sulla carta ma è <b>congelato</b> — si realizza solo in futuro, data incerta.</div>
+      <div style="margin-top:12px;padding:10px;background:#FCEBEB;border-radius:8px;font-size:12px;color:#A32D2D">
+        <b>Esempio:</b> App.1 e 2 Fonte di Fauno — i genitori ci abitano. Francesca non può affittarli né venderli ora.
+      </div>
+    </div>
+  </div>
+
+  <p class="section-lbl">Valore ponderato per utilizzo — impatto sui lotti (scenario A base)</p>
+  <table class="recap-table" style="margin-bottom:1.75rem">
+    <thead><tr>
+      <th>Beneficiario</th>
+      <th style="text-align:right">Val. mercato lordo</th>
+      <th style="text-align:right">Val. ponderato</th>
+      <th style="text-align:right">Differenza</th>
+      <th>Nota</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="pill" style="background:#E6F1FB;color:#185FA5;font-weight:500">Tommaso</span></td>
+        <td style="text-align:right">€1.542k</td>
+        <td style="text-align:right;font-weight:500">€1.450k</td>
+        <td style="text-align:right"><span class="pill pill-n">−€92k</span></td>
+        <td>FM a pieno (1.00), Manara+Mag1 a 0.85</td>
+      </tr>
+      <tr>
+        <td><span class="pill" style="background:#E2EFDA;color:#3B6D11;font-weight:500">Francesca</span></td>
+        <td style="text-align:right">€2.220k</td>
+        <td style="text-align:right;font-weight:500">€1.183k</td>
+        <td style="text-align:right"><span class="pill pill-n">−€1.037k</span></td>
+        <td>App.1+2 a 0.50 (bloccate), Gar.3 a 0.85</td>
+      </tr>
+      <tr>
+        <td><span class="pill" style="background:#FFF3CD;color:#856404;font-weight:500">Paolo</span></td>
+        <td style="text-align:right">€1.367k</td>
+        <td style="text-align:right;font-weight:500">€1.162k</td>
+        <td style="text-align:right"><span class="pill pill-n">−€205k</span></td>
+        <td>Tutto a 0.85 — libero ma bassa rendita</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="background:#faf9f6;border-left:3px solid #e5e3de;border-radius:0 10px 10px 0;padding:14px 16px;font-size:13px;color:#666;line-height:1.7;margin-bottom:1.5rem">
+    <b style="color:#1a1a1a">Perché usare il valore ponderato?</b><br>
+    Il valore catastale è un numero fisso e uguale per tutti. Il valore di mercato è una stima più realistica. Ma né l'uno né l'altro riflettono <em>quando</em> puoi davvero godere di quel patrimonio. Il valore ponderato moltiplica il valore di mercato per un coefficiente che esprime la disponibilità reale: un appartamento che vale €1.400k ma che resterà occupato per anni non vale davvero €1.400k <em>oggi</em>. Questo è lo squilibrio principale che i correttivi degli scenari B, C e D cercano di risolvere.
+  </div>
+
+  <p class="section-lbl">Note metodologiche</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem">
+    <div style="background:#fff;border:0.5px solid #e5e3de;border-radius:10px;padding:14px 16px">
+      <div style="font-size:12px;font-weight:500;margin-bottom:6px">Valori catastali</div>
+      <div style="font-size:12px;color:#666;line-height:1.6">Dati dall'xlsx di progetto (anno 2020). Usati come base di riferimento e per calcoli fiscali. Spesso inferiori al mercato reale, specialmente per immobili in zone pregiate di Roma.</div>
+    </div>
+    <div style="background:#fff;border:0.5px solid #e5e3de;border-radius:10px;padding:14px 16px">
+      <div style="font-size:12px;font-weight:500;margin-bottom:6px">Stime di mercato 2025</div>
+      <div style="font-size:12px;color:#666;line-height:1.6">Basate su dati OMI Agenzia delle Entrate, quotazioni zone Prati e Trieste/Salario (Roma) e mercato terreni agricoli Bassa Bresciana. Valore centrale della forbice stimata. <b>Non sostituiscono perizia professionale.</b></div>
+    </div>
+    <div style="background:#fff;border:0.5px solid #e5e3de;border-radius:10px;padding:14px 16px">
+      <div style="font-size:12px;font-weight:500;margin-bottom:6px">Coefficienti utilizzo</div>
+      <div style="font-size:12px;color:#666;line-height:1.6">Valori proposti: ★★★=1.00, ★★=0.85, ★=0.50. Modificabili in accordo tra i fratelli. Il coefficiente ★ può essere abbassato ulteriormente (es. 0.40) se si stima una lunga attesa per Fonte di Fauno.</div>
+    </div>
+    <div style="background:#fff;border:0.5px solid #e5e3de;border-radius:10px;padding:14px 16px">
+      <div style="font-size:12px;font-weight:500;margin-bottom:6px">Rendite stimate</div>
+      <div style="font-size:12px;color:#666;line-height:1.6">Affitti stimati su base OMI locale. Garage Roma: ~€1.000/m. App. Trieste liberi: €1.250-2.500/m. App. Brescia: €500-600/m. Terreni Remedello: ~€1.400/a per ettaro (rendita agricola).</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <p class="foot">Documento preparatorio per discussione familiare — maggio 2025. Consultare un notaio prima di qualsiasi atto.</p>
+</div>
+
+
+<!-- PAGE 3: CONFRONTO -->
+<div id="p3" class="page">
+  <div class="charts-row">
+    <div class="cbox">
+      <div class="ct">Delta vs quota ideale — catastale (€k)</div>
+      <div class="leg">
+        <span class="li"><span class="ld2" style="background:#378ADD"></span>Tommaso</span>
+        <span class="li"><span class="ld2" style="background:#1D9E75"></span>Francesca</span>
+        <span class="li"><span class="ld2" style="background:#BA7517"></span>Paolo</span>
+      </div>
+      <div style="position:relative;height:200px"><canvas id="cC" role="img" aria-label="Delta catastale per scenario">Delta catastali A B C D per T F P.</canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ct">Delta vs quota ideale — mercato 2025 (€k)</div>
+      <div class="leg">
+        <span class="li"><span class="ld2" style="background:#378ADD"></span>Tommaso</span>
+        <span class="li"><span class="ld2" style="background:#1D9E75"></span>Francesca</span>
+        <span class="li"><span class="ld2" style="background:#BA7517"></span>Paolo</span>
+      </div>
+      <div style="position:relative;height:200px"><canvas id="cM" role="img" aria-label="Delta mercato per scenario">Delta mercato A B C D per T F P.</canvas></div>
+    </div>
+  </div>
+  <div class="charts-row">
+    <div class="cbox">
+      <div class="ct">Rendita annua stimata per lotto (€k)</div>
+      <div class="leg">
+        <span class="li"><span class="ld2" style="background:#378ADD"></span>Tommaso</span>
+        <span class="li"><span class="ld2" style="background:#1D9E75"></span>Francesca</span>
+        <span class="li"><span class="ld2" style="background:#BA7517"></span>Paolo</span>
+      </div>
+      <div style="position:relative;height:200px"><canvas id="cR" role="img" aria-label="Rendita annua per lotto e scenario">Rendite per scenario.</canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ct">Valore di mercato 2025 per bene (€k)</div>
+      <div class="leg">
+        <span class="li"><span class="ld2" style="background:#378ADD"></span>Tommaso</span>
+        <span class="li"><span class="ld2" style="background:#1D9E75"></span>Francesca</span>
+        <span class="li"><span class="ld2" style="background:#BA7517"></span>Paolo</span>
+      </div>
+      <div style="position:relative;height:200px"><canvas id="cB" role="img" aria-label="Valore per bene">Valori per bene.</canvas></div>
+    </div>
+  </div>
+
+  <p class="section-lbl">Riepilogo scenari</p>
+  <table class="recap-table">
+    <thead><tr>
+      <th>Scenario</th>
+      <th>T cat.</th><th>F cat.</th><th>P cat.</th>
+      <th>T mkt</th><th>F mkt</th><th>P mkt</th>
+      <th>Rendita P</th><th>Equilibrio</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><b>A — Base</b></td>
+        <td><span class="pill pill-n">−€231k</span></td><td><span class="pill pill-p">+€246k</span></td><td><span class="pill pill-z">−€13k</span></td>
+        <td><span class="pill pill-n">−€168k</span></td><td><span class="pill pill-p">+€510k</span></td><td><span class="pill pill-n">−€343k</span></td>
+        <td>€37.8k</td><td><span class="stars">★★</span> gap marcato</td>
+      </tr>
+      <tr><td><b>B — Gar.3→P</b></td>
+        <td><span class="pill pill-n">−€231k</span></td><td><span class="pill pill-z">+€31k</span></td><td><span class="pill pill-p">+€202k</span></td>
+        <td><span class="pill pill-n">−€168k</span></td><td><span class="pill pill-p">+€265k</span></td><td><span class="pill pill-p">+€102k</span></td>
+        <td>€49.8k</td><td><span class="stars">★★★</span> buon bilancio</td>
+      </tr>
+      <tr><td><b>C — Strutt.</b></td>
+        <td><span class="pill pill-n">−€249k</span></td><td><span class="pill pill-z">+€31k</span></td><td><span class="pill pill-p">+€220k</span></td>
+        <td><span class="pill pill-n">−€190k</span></td><td><span class="pill pill-p">+€265k</span></td><td><span class="pill pill-n">−€76k</span></td>
+        <td>€46.6k</td><td><span class="stars">★★★★</span> più bilanciato</td>
+      </tr>
+      <tr><td><b>D — Cash</b></td>
+        <td><span class="pill pill-z">€0</span></td><td><span class="pill pill-z">€0</span></td><td><span class="pill pill-z">€0</span></td>
+        <td><span class="pill pill-z">€0</span></td><td><span class="pill pill-z">€0</span></td><td><span class="pill pill-z">€0</span></td>
+        <td>€25.8k</td><td><span class="stars">★★★★★</span> perfetto ma liquidità</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="section-lbl">Peso utilizzo</p>
+  <div class="util-row">
+    <div class="uc"><div class="us">★★★ Già in uso — coeff. 1.00</div><div class="ud">Valore pieno immediato. Fabio Massimo: Tommaso ci vive già.</div></div>
+    <div class="uc"><div class="us">★★ Reddito immediato — coeff. 0.85</div><div class="ud">Affitto o vendita subito. Garage, Magenta, Manara, Volpere.</div></div>
+    <div class="uc"><div class="us">★ Bloccato — coeff. 0.50</div><div class="ud">Occupato dai genitori. App.1 e 2 Fonte: libero quando?</div></div>
+  </div>
+
+  <hr class="divider">
+  <p class="foot">Valori di mercato stimati su fonti OMI e pubbliche 2025 — non sostituiscono perizia professionale. Consultare un notaio prima di qualsiasi atto di donazione o successione.</p>
+</div>
+
+<script>
+function topTab(i){
+  document.querySelectorAll('.top-tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('active',i===j));
+  if(i===3&&!window._charts) buildCharts();
+}
+function scTab(prefix,i){
+  ['0','1','2','3'].forEach(j=>{
+    const el=document.getElementById(prefix+'s'+j);
+    if(el) el.classList.toggle('active',+j===i);
+  });
+  const allTabs=document.querySelectorAll('.sc-tab');
+  let offset=prefix==='c'?0:4;
+  allTabs.forEach((t,j)=>{if(j>=offset&&j<offset+4)t.classList.toggle('active',j-offset===i);});
+}
+window._charts=false;
+function buildCharts(){
+  window._charts=true;
+  const gc='rgba(0,0,0,0.07)',tc='#999';
+  const CT='#378ADD',CF='#1D9E75',CP='#BA7517';
+  const base={responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y>0?'+':'')+c.parsed.y+'k'}}},
+    scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>v+'k'}}}};
+  new Chart(document.getElementById('cC'),{type:'bar',data:{labels:['A','B','C','D'],datasets:[
+    {label:'Tommaso',data:[-231,-231,-249,0],backgroundColor:CT,borderRadius:3},
+    {label:'Francesca',data:[246,31,31,0],backgroundColor:CF,borderRadius:3},
+    {label:'Paolo',data:[-13,202,220,0],backgroundColor:CP,borderRadius:3},
+  ]},options:base});
+  new Chart(document.getElementById('cM'),{type:'bar',data:{labels:['A','B','C','D'],datasets:[
+    {label:'Tommaso',data:[-168,-168,-190,0],backgroundColor:CT,borderRadius:3},
+    {label:'Francesca',data:[510,265,265,0],backgroundColor:CF,borderRadius:3},
+    {label:'Paolo',data:[-343,102,-76,0],backgroundColor:CP,borderRadius:3},
+  ]},options:base});
+  new Chart(document.getElementById('cR'),{type:'bar',data:{labels:['A','B','C','D'],datasets:[
+    {label:'Tommaso',data:[15,15,13.2,15],backgroundColor:CT,borderRadius:3},
+    {label:'Francesca',data:[12,0,0,12],backgroundColor:CF,borderRadius:3},
+    {label:'Paolo',data:[37.8,49.8,46.6,25.8],backgroundColor:CP,borderRadius:3},
+  ]},options:{...base,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': €'+c.parsed.y.toFixed(1)+'k/a'}}},
+    scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>'€'+v+'k'}}}}});
+  new Chart(document.getElementById('cB'),{type:'bar',
+    data:{labels:['App.2 Fonte','Fabio M.','Volp.Terr.','App.1 Fonte','Gar.3','Manara','Mag.2','Mag.1','Volp.Casc.','Gar.1','Gar.2'],
+      datasets:[{label:'Valore',data:[1400,1300,990,575,245,138,116,104,100,83,78],
+        backgroundColor:[CF,CT,CP,CF,CF,CT,CP,CT,CP,CP,CP],borderRadius:3}]},
+    options:{...base,indexAxis:'y',
+      scales:{y:{grid:{display:false},ticks:{color:tc,font:{size:10}}},x:{grid:{color:gc},ticks:{color:tc,font:{size:11},callback:v=>'€'+v+'k'}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'€'+c.parsed.x+'k'}}}}});
+}
+</script>
+</body>
+</html>
