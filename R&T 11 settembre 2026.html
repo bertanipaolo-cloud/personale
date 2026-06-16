@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reyhaneh &amp; Tommaso · Rinfresco · 11 settembre · Roma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --paper:#F5EFE3;--paper-2:#EFE7D6;--ink:#2A2018;--ink-soft:#6E6457;--line:#D9CDB6;
+    --green:#6B7B4F;--ochre:#C99A3F;--terra:#B0533A;--sky:#4A6670;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.45;}
+  .wrap{max-width:1020px;margin:0 auto;padding:38px 24px 64px}
+
+  .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--terra);font-weight:600;margin:0 0 14px;}
+  h1{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:-.01em;margin:0 0 16px;font-optical-sizing:auto;}
+  h1 em{font-style:italic;color:var(--terra)}
+  .subtitle{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:clamp(17px,2.4vw,22px);color:var(--ink);margin:0 0 16px;letter-spacing:.005em;}
+  .lede{max-width:560px;color:var(--ink-soft);font-size:16px;margin:0 0 4px;}
+  .meta{display:flex;flex-wrap:wrap;gap:10px 22px;margin:22px 0 0;font-size:13.5px;color:var(--ink-soft);}
+  .meta b{color:var(--ink);font-weight:600}
+
+  /* map */
+  #map{height:400px;margin:30px 0 4px;border:1px solid var(--line);border-radius:14px;
+       background:var(--paper-2);z-index:0;}
+  .maphint{font-size:12px;color:var(--ink-soft);margin:0 0 0 2px}
+  .pin{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50% 50% 50% 2px;
+       transform:rotate(45deg);box-shadow:0 2px 5px rgba(42,32,24,.3);border:1.5px solid #fff;}
+  .pin span{transform:rotate(-45deg);font-family:'Fraunces',serif;font-weight:600;font-size:12px;color:#fff;line-height:1}
+  .pin.rooftop{background:var(--sky)} .pin.giardino{background:var(--green)}
+  .leaflet-popup-content-wrapper{border-radius:10px;font-family:'Inter',sans-serif}
+  .leaflet-popup-content{margin:13px 15px;font-size:13px;color:var(--ink)}
+  .pop-photos{display:flex;gap:4px;margin:-3px -3px 9px;border-radius:8px;overflow:hidden}
+  .pop-photos img{flex:1;width:50%;height:92px;object-fit:cover;display:block;background:var(--paper-2)}
+  .pop-photos img:only-child{width:100%}
+  .pop-name{font-family:'Fraunces',serif;font-weight:600;font-size:16px;margin-bottom:2px}
+  .pop-meta{color:var(--ink-soft);font-size:12px;margin-bottom:8px}
+  .pop-price{font-weight:600;margin-bottom:9px}
+  .pop-links{display:flex;gap:7px;flex-wrap:wrap}
+  .pop-links a{font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;text-decoration:none;
+       color:var(--ink);background:var(--paper-2);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+  .pop-links a:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+  .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin:30px 0 8px;padding-bottom:16px;border-bottom:1px solid var(--line);}
+  .filters{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink-soft);font-family:inherit;font-size:13px;font-weight:500;padding:7px 14px;border-radius:999px;cursor:pointer;transition:.18s;}
+  .chip:hover{border-color:var(--ink-soft);color:var(--ink)}
+  .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+  .chip .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px}
+  .dot.sky{background:var(--sky)} .dot.green{background:var(--green)}
+  .sortwrap{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-soft)}
+  .sortwrap select{font-family:inherit;font-size:13px;color:var(--ink);background:var(--paper-2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;cursor:pointer;}
+
+  .axislabel{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:2px;}
+  .axis{position:relative;height:24px;margin:18px 0 6px;padding-left:var(--lw);}
+  .axis .track{position:relative;height:100%}
+  .axis .tick{position:absolute;top:0;transform:translateX(-50%);font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
+  .axis .tick::after{content:"";position:absolute;left:50%;top:17px;width:1px;height:7px;background:var(--line);}
+
+  :root{--lw:300px}
+  .list{margin-top:4px}
+  .row{display:grid;grid-template-columns:var(--lw) 1fr 120px;align-items:center;gap:0 22px;padding:17px 0;border-bottom:1px solid var(--line);}
+  .row:last-child{border-bottom:none}
+  .row.active{background:linear-gradient(90deg,rgba(176,83,58,.06),transparent 60%)}
+
+  .name{display:flex;gap:14px;align-items:baseline;min-width:0}
+  .rank{font-family:'Fraunces',serif;font-size:15px;color:var(--ink-soft);width:22px;flex:none;font-variant-numeric:tabular-nums;padding-top:2px;}
+  .ntext{min-width:0}
+  .vtop{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .vname{font-family:'Fraunces',serif;font-size:20px;font-weight:500;line-height:1.12;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+  .vname:hover{color:var(--terra);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+  .sub{display:flex;align-items:center;gap:9px;margin-top:5px;font-size:12.5px;color:var(--ink-soft);flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:5px;}
+  .badge.rooftop{color:#33505b;background:rgba(74,102,112,.13)}
+  .badge.giardino{color:#4d5a35;background:rgba(107,123,79,.15)}
+  .zona{white-space:nowrap}
+  .rate{white-space:nowrap;font-variant-numeric:tabular-nums}
+  .rate b{color:var(--ink);font-weight:600}
+  .links{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+  .links a,.links button{font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;text-decoration:none;color:var(--ink-soft);background:transparent;border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer;font-family:inherit;transition:.16s}
+  .links a:hover,.links button:hover{color:var(--ink);border-color:var(--ink-soft)}
+  .links .pinbtn:hover{color:var(--terra);border-color:var(--terra)}
+
+  .bandcell{position:relative}
+  .bandtrack{position:relative;height:30px}
+  .bandtrack::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:repeating-linear-gradient(90deg,var(--line) 0 5px,transparent 5px 11px);}
+  .band{position:absolute;top:50%;transform:translateY(-50%);height:11px;border-radius:999px;transform-origin:left center;transition:width .7s cubic-bezier(.2,.7,.2,1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);}
+  .band .cap{position:absolute;top:50%;transform:translateY(-50%);font-size:11px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .band .cap.lo{right:calc(100% + 8px)} .band .cap.hi{left:calc(100% + 8px)}
+
+  .totcell{text-align:right}
+  .ppax{font-family:'Fraunces',serif;font-size:17px;font-weight:500;font-variant-numeric:tabular-nums}
+  .ppax span{font-size:12px;color:var(--ink-soft)}
+  .tot{font-size:12px;color:var(--ink-soft);margin-top:3px;font-variant-numeric:tabular-nums}
+
+  .note{grid-column:1 / -1;margin:11px 0 0 36px;font-size:13px;color:var(--ink-soft);max-width:640px;}
+  .flag{display:inline-block;margin-left:8px;font-size:11px;font-weight:600;color:var(--terra);border:1px solid rgba(176,83,58,.4);border-radius:5px;padding:1px 7px;vertical-align:1px;}
+
+  .foot{margin-top:40px;padding-top:24px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px;}
+  .foot h4{font-family:'Fraunces',serif;font-weight:600;font-size:14px;margin:0 0 6px}
+  .foot p{font-size:12.5px;color:var(--ink-soft);margin:0}
+  .disc{margin-top:26px;font-size:11.5px;color:var(--ink-soft);font-style:italic}
+
+  @media (max-width:760px){
+    :root{--lw:0px}
+    .axis{display:none}
+    #map{height:320px}
+    .row{grid-template-columns:1fr;gap:12px 0;padding:20px 0}
+    .name{order:1}.totcell{order:2;text-align:left;display:flex;align-items:baseline;gap:14px}
+    .tot{margin-top:0}.bandcell{order:3}.bandtrack{height:26px}.note{margin-left:36px}.band .cap{font-size:10.5px}
+  }
+  @media (prefers-reduced-motion:reduce){.band{transition:none}.row{opacity:1!important;transform:none!important}}
+  .list .row{opacity:0;transform:translateY(8px);animation:rise .5s forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Il rinfresco di · venerdì 11 settembre 2026</p>
+  <h1>Reyhaneh <em>&amp;</em> Tommaso</h1>
+  <p class="subtitle">Terrazze &amp; giardini a Roma per il rinfresco</p>
+  <p class="lede">Ventiquattro location per festeggiare con un aperitivo in piedi, eleganti ma snelle. Le fasce di prezzo sono stime di mercato per il formato cocktail.</p>
+  <div class="meta">
+    <span><b>~30</b> invitati</span>
+    <span><b>Aperitivo</b> rinforzato · open bar + finger food</span>
+    <span>Venerdì sera · stagione piena</span>
+  </div>
+
+  <div id="map"></div>
+  <p class="maphint">Tocca un segnaposto per scheda e link · <span style="color:var(--sky)">●</span> rooftop · <span style="color:var(--green)">●</span> giardino</p>
+
+  <div class="bar">
+    <div class="filters" id="filters">
+      <button class="chip" data-filter="all" aria-pressed="true">Tutti</button>
+      <button class="chip" data-filter="rooftop" aria-pressed="false"><span class="dot sky"></span>Rooftop</button>
+      <button class="chip" data-filter="giardino" aria-pressed="false"><span class="dot green"></span>Giardino</button>
+    </div>
+    <label class="sortwrap">Ordina
+      <select id="sort">
+        <option value="price">Prezzo · dal più basso</option>
+        <option value="price-desc">Prezzo · dal più alto</option>
+        <option value="rating">Recensioni</option>
+        <option value="name">Nome</option>
+      </select>
+    </label>
+  </div>
+
+  <p class="axislabel">€ a persona</p>
+  <div class="axis"><div class="track" id="axis"></div></div>
+
+  <div class="list" id="list"></div>
+
+  <div class="foot">
+    <div><h4>È il minimo che comanda</h4><p>Su 30 persone di venerdì sera molti rooftop chiedono un minimo garantito per la privativa (≈ 2.000–3.500 €): può superare il conto “a testa”.</p></div>
+    <div><h4>Ville da matrimonio</h4><p>Casina Valadier e Oltre Il Giardino sono tarate su 80–150 invitati: in 30 rischi un minimo sproporzionato. Splendide, ma poco efficienti per un rinfresco.</p></div>
+    <div><h4>Se diventa cena</h4><p>Passando da aperitivo in piedi a buffet seduto o cena leggera, alza tutte le cifre di circa il 30–50%.</p></div>
+  </div>
+  <p class="disc">Stime indicative, non preventivi: nessuna di queste location pubblica i prezzi eventi. Il numero reale arriva solo al telefono, in base a data, durata e formato.</p>
+
+</div>
+
+<script>
+const SCALE_MIN=40,SCALE_MAX=185,TICKS=[50,90,130,170];
+
+const PHOTOS={
+ "ChIJ0_sa6KlhLxMRLl6UzJM1qJo":["https://lh3.googleusercontent.com/place-photos/AJRVUZOxAh2uA-b0bkubpf4I8cMrlg9jQNJdkx0w_EVGjxEDEp9Tx4CHAHchTXv5WB9Db5YYXNTZuBFeNSutx1K95hHmV6vU-DEmccmTvlR6ZUID2jLbT7ZuzGA8N7UMCOvhQEy4zspYAdg0y1hq=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZP-QRJlaE4ExKpZ4pM8OUiFrhzqx9NV2Hq8lcv_1DpsX9d6NdjgdrZWBT-FdK3muXN8uMR9NFTZCjWidp2e75VNbyIShsTB4Km9KCTZbnAnYZLM5a1wSen0ZIA8zClZQLYZT1_c5GHmVmKoc0ovbBQ0Cg=s4800-w800-h600"],
+ "ChIJI87qzVVhLxMRdbVaRwmImyU":["https://lh3.googleusercontent.com/place-photos/AJRVUZPIRTYX7veZn0-oOfg8wUnVzw5lisymlbyfD5m9y00NYLjixl5nqg0TSrzJjIOy8M9Oj-eD6t9iJD-PANcUcR6KdJ8Uz5hOa-dC6uxwIF8XFGMS1LPBtz5JgEUGIuM6FX4HS9rh6HoW3xx-8xM=s4800-w768-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZN_dcLH1zsEpzltHh4O-TsWn7go7pVIf-ojDpQNJaVEOf1Og3Fy7sN1Ysvj4ix41YqMqGjswtGSDjFcJghcizh3-gNpluhVZRiv1YfM6XwQXgd1xS-Zkmtk9h6pXfgIc5WbxDpuKwGcwuvuyS_gVihcUg=s4800-w800-h600"],
+ "ChIJp8pzSYphLxMRMEaU4vmm_Wg":["https://lh3.googleusercontent.com/place-photos/AJRVUZMY-w3wSEJIgl_47ieGOtNniN1Y4cmzdl9KIQbrqtRQ9kkGIQanH0BjBNnB7xisp6wzPEqCdmPs7K8fMH5hY_11NGJcbOkrQ4EEDRF9VVrexSOMgflR2aQ6MDcA6ketKHHAkqamVah9WTF9=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZPJ8WeEI3ScTPtHZ10KtZopq0fcLFpGYPyBAieWulhnQrM4AL8luoSwhOKwwS7NLwmXocraeSXAP0amBIg7ReA6ewV7RfejuQAleX3CQ9Vllb4gwbiqr9BVss5HscSCUuH-sPRx7EUs_kH5UnKedZa-=s4800-w800-h600"],
+ "ChIJsdV0ikpgLxMR1L6n-81pZTg":["https://lh3.googleusercontent.com/place-photos/AJRVUZPxOcjkvHIQb3dvahAU_QZIkcl6Hbo1bgw50RaOXTWfgFSZQtdjATzHFgyl9p_yfvEJ7sARgYgmsb0AX0w2GFCUPLp4DtR2QCzBs3eOSPYef0NFWFXFAWhoNGDkZMc1bpI9UhZGqlXYxU9R0A=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZOHAs1P1GGWuTOwQUqh9htR-OHHlrKRW1P1WeehaENlyakude44d3gme7bOR8DTCfdHcOLfjzi23zlY4vadtJucVxmP8Joo6LlrGIomje-8g4FdR7oUtRgwoi1pEGHi-WeykezQZAacddSnNVB6eseqEQ=s4800-w800-h600"],
+ "ChIJg34OftBhLxMRzRPrIlNrcr0":["https://lh3.googleusercontent.com/place-photos/AJRVUZPHunXxU-GLplBnUixPAi3kGZkVNrxg7s01a6Lpks2ra3pLru3MJrasQMDMBeODeIlJotB8cGDfSjMja48ZrcBEQEj6_ngbq81ih82x2Ofv63ANX2JkeKYo8CllgbxIhcnCCATVsJLhX4EZTp0=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZPRKpJP27xqor7HjQHHNhtpcogZY9MdWcIu_iB6jFZpc_mj_V6sIc4T5ATq3xzEpkSCHBHArLN1o5-aG4-ZPl7AoVEWfmQD8NBQQ8gb4Gr2W33PAmE4GcuLIXAZGmCqp3ckLGa_3psUNjXH0POXHcecGw=s4800-w800-h600"],
+ "ChIJ-3BA3ANhLxMRE1YQNfjQJXk":["https://lh3.googleusercontent.com/place-photos/AJRVUZOjlp1uPGoQga1w70LYTjKm4EdUgqBDXdmMWd8dh2rXkoxw_64fD5t7fMqKNKM306ep50oxskECX9tHGHL4B7vVy8jTFoDsVRPeUp0bTN_Wy2janU244lUIvMbGZ6yFO0Bngn8Fqs2OpCGUxt5Cpe1ueA=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZN_EdnIzuzenBOAxD3qhkfIixUgpkRXcNEIa8TUg76egBOrMSnh8tp-Sgba4jqJCIGbQEZcRZjy9LYEjPW_zKbXY1GADsF5ef16VAxCH6wpvYASEWqyPEeCiTSpni-COnaeLy2UB8FT0p3r_Q=s4800-w720-h600"],
+ "ChIJPfN8W3xhLxMRplwz2H_lOR8":["https://lh3.googleusercontent.com/place-photos/AJRVUZM72ZeVff-TzeCZMZXX7XoKUSRL_9Ntap5XSaahoq5W_DPrY_OeXT3fNvgN1IP3zD4YC2wz8MN9nU_8QD1I1Wghi31K1Z_CvWeh0qz01cE88R7ofhae5hU8jFwIucpIFis60LaR0JoTnVvYT_jr6hi-=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZOUwutaXt-2VwR-KcNI9TPur_G3285WjVKCHpzngiI9BSDM8a-DBexch3P0b903Q20r3TXY3NjewaUFZsTsojZ05w99QpZLm1L7Qcz-3S9rNy3tuaZJLmSx7-YgJrn0-HcgzuTetIByUzKMwkv7G_IsTQ=s4800-w800-h600"],
+ "ChIJMxaeegBhLxMRD41RTx3Aft8":["https://lh3.googleusercontent.com/place-photos/AJRVUZOTGAKfFBc_LDOqRJV8uJNnCR2h1I7r_xagX9Sm9NEndrfFv2Wo05Qm84AeHp1YTZKAhAfzfzoQssFoynEBLMuYLtKkGxI01oVfgHFtRqzz2aPD1DPwOsMbCDB_cJFUusLXCI5OUFHCTcOyCVypDI7eUg=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZPbY3j8zzXeNd68EHHOcNrix0tLShBYOWzirzgFGZhhmWuU7OVFUj5O8X6yU9rc9RfrENaFVWN3Ao-4zwAAm6PjO1NwdVdMZph-g--ePEKF7No7kM9rEGggmleFpmhx5D4CGhm0tfSe8W-LKDQNfkzxkQ=s4800-w800-h600"],
+ "ChIJYTIvwfhgLxMRHzTEdGWB0JQ":["https://lh3.googleusercontent.com/place-photos/AJRVUZPRJIfwSG5eiQ-1uyMG7UHNXzl05-WzEO-ya2s2MQlBSlIyf7SBdNWfLqMa43YLGKTxw3RE5GYZNkzLLUTHX-N7hMfXSNPgE1RELptkxyI4Bb4xt9QvXpHa4q7hyKqG1Xn87SHbXQwH0VQ3_2OStcPeXA=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZNDURzm_LGozUctStNMtvmJO3kvZtrrP3WoaDh_CbDBl_CFMlX_Uosfv6N7xbgYn7g5f8OLY9_tXSEtQiLzopswezethQDM0wSwgkvUbrlmmxTmsVJa7ju0oJ1ZsQpf4lzmwg3I8UGk15dPdxyJ3QPTSw=s4800-w800-h600"],
+ "ChIJD05o711gLxMROQZrzcirO1k":["https://lh3.googleusercontent.com/place-photos/AJRVUZPvdAReCn2EFAYrwbgzAlaJNJp1kmNdAMDHYgI9k9hGA1TgqhT3HsimqZg9z-ZMSaB0Ly8nMs1bBT0XLcuZpjIZDpQnkMWg_CX9_JlGwjOvTERrDMKZvqfd7VXuR6TfQuJtp4Jx75uqE2x8OA=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZPGh-gTGZlBfCJ12Q0Ajwb5HKkpiCi5_8gnj_bBEgjuu3KuiUsvSD8P0MeKyMTaI1UV8jEKAOv0amSO4pGboe8eAO36ul8Ac0shJyuqrpcKzgzwqVfXFNZwvAzoXTpW1Tg0TgZZh81jQgedi21dpID-mQ=s4800-w800-h600"],
+ "ChIJdTjSxM5hLxMRaxIVUZ79nXs":["https://lh3.googleusercontent.com/place-photos/AJRVUZM_1Q6y_2rHKWbiER25kTqXgjvkuWnNaMowqGDIozAd4GtYq25-X4Oz8lxGpzlRi9GFrYemAcFGPS5wASCfZZDirYluMi3M0ju-RdczWwhnpEtdxoqktMUyZRrPOEDpi46yOEJyvcNKnO6bVYtY9ig-zQ=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZMM0raEbcLQSqICQQYODEifORngYUq5hQch1LyRQNOL8H2rgbJr2T9wiar9mZn9ltZZiY7l_VVNWmy5QwxxtuuQ3QNmtc5Uk8cJ1jzegjPDYnOkpOtv0pXAJARD9_Wxhd-iRKxAkenPSlmj-B4=s4800-w800-h600"],
+ "ChIJkXAtnx6KJRMR2NFjTHq1iqM":["https://lh3.googleusercontent.com/place-photos/AJRVUZNDxqJ3Oc2lVi2DESaB1M2w0x-89qZ5zYeSJ0Fi8n3hvIPLXlDlmZBZQmWUUOXAnpa6XvZr7uj8P7DpQXz25lEbLROLwyw8VVoIeIUaTvRnQfJx7nUC8qiK862qqGAUxNrLS92-d0tw7cpyFw=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZMockcoVDfuxufTZfC5k6Df5x3GuJTjlop7l06_kzEjIpliun0NvrBFIPtX4_FEh8vsjX_eBnHJ1m66-CNac35dDgav-pZroKu3Ok0wWSyQ09wbtnkofChX-bFuyeVQ4sSorpgQOJgcRj4KB6_m_8zHgg=s4800-w800-h600"],
+ "ChIJHVzf4f5gLxMRM1GL6ClUDVM":["https://lh3.googleusercontent.com/place-photos/AJRVUZPno_6WqJgvD_iAJh3NFo2x-9D259LRuxkiGOeNttFtSvGoR886SUPWYgXxqBbTTcC4WqJtQyPygfZqsQVjLsn54SlAa6I2T4Te12TI_BQsQBftkzhYGhM6nB4l7519M2gWczr64m-wrgolZuI=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZMdL2stp8aMAmRpZCoau4gePOX6tFgJBNYehjBn_lj44puXEt5mcOlIXZs0q7DSTfRcZNV8vbXXjmUZzz39AC63xFhegdojvy_nHLKtE2vMaEKCsxqakxdStpQRH1ODvW3lEF3J1WHkhAF6flAiSyoVMQ=s4800-w800-h600"],
+ "ChIJJeHxZuNhLxMR6esd80TmOVU":["https://lh3.googleusercontent.com/place-photos/AJRVUZPoLcWYoWtUTKG_X9QiGAKRrFQE9wHBclMJ9iqK6sbU1Kh1DHpN_UKfqge0a4kBJxYFPnvGjpMBLo81QRBI9sMEcQZ0LOZgeQSomJ0P95E0DPoKAelX0NfOD7cmHQOXTzKy744eFwQqCvoGRQ=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZMvhnwPYxYAsgdXSsVFy--W5eSV-sGat9kTv2W8O6ayJ6OI9dK9etLUyLrDb7__RGYbxCaa2Vj5yIDIiWAievnribIyKhbGsp8ovNgDDR2tzHiONb3c3iMSBERC4z7GroctiuAgvx61W25-JA=s4800-w800-h600"],
+ "ChIJI8bCVUVgLxMRXxbvlQ5ccIU":["https://lh3.googleusercontent.com/place-photos/AJRVUZOMa9eLXYWZq31v-H2mLqHkLHM_18RUdRMhvvHr1IgXv1JrMYHxrJmHhCtpnFB8T4B9R1gn9LT3TY2qqCVK3_FSvEvVe01BFueq_BC18HxdIokp9OTYnehNoF4q_-YvZHjs6sok7X2JFKtK=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZMjb1DzPZa9ADDFlMg0xVUNeXyEWRqX4ckiMyiH1p_VOPY5h2OAXBFfstlnUHbNlZBsyhVz2lKXZj_FuNwtqotdPVyqyIGsueTklsdZBj49fDn8aC1Eh100XZUufEJzNhhI_NNW4JZL9q3drGdsILRldQ=s4800-w800-h600"],
+ "ChIJVby3HVRgLxMRCT2x_x0Qa24":["https://lh3.googleusercontent.com/place-photos/AJRVUZMUguB934Wfl0bMoXnL9Yr-i20ezCNSwvIGC1pLTaPiHGrGWBWICUlW6klLtQugwgpel_fOHFxlKapV4S154G8RBaE9_pxUM3Rog9SiOvmyOAwGuKr221Wa_A7qiz-T9qAh6VlZWIRt5F2-4pgi2onmNg=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZNXhD67kcAvjfaiVubyfSLGnxPHgUTFc_IljJSDGCUeJ9hJQVmkWd5BrzJETnTvqQD-K7g5P17LimQa-sl0kQbqaXw_vQMdWzNyvCs8ivT4wsJ7v_JVhgarzmAtLp1RisfvV6iaKLzfOleBeQ=s4800-w800-h600"],
+ "ChIJ4U0igKphLxMRvhbxnPgos-I":["https://lh3.googleusercontent.com/place-photos/AJRVUZMbNiAruQ0f50-KXKwzXWEUPZ-tGFj0fI3q8W2XQ5JUHMe7FDKGELj66bJSYHv8v-dPVMw6XAxm_NpaXt0exQObRt5kRWT14ni6s6TeOvIGBX67-dHv8KisXSf-1lPtUdecywmKTBT_kxwe-Ps=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZNLS1Meuly35wxt-xf6o5kwsb8bx7CjevbPWETJHJNt4PtCkqPIKMScLMVizE3SuQWpe6vlPtu5g1pVyPjqirFVdUvAsh8mifI_z2p4G5hv7Ihv_BreaKxW9gjcpMEq-k1U5xtssXeXLlVpgfuwHKieLA=s4800-w800-h600"],
+ "ChIJi4Jp6M5hLxMRQCP76THpJtU":["https://lh3.googleusercontent.com/place-photos/AJRVUZMMtwwro4od3abG7W0WuJW5_nf89DEGnFZzfQgMNhjHXtMl0Icq3ZAYbX7crJjHoNGY4PZYlDI6PftfJyx-vvcLzheuj-M8x6YMUKweVGqKcE_wuyrQXrPKwb_wx689MA6935RMqBWDS8YOPz5aHZHKjQ=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZNoGEO80LCFNlLtS2D09o1uXs1MqKh0v0OTab2s28Y-adZ85hvc2KBnDzhhj0Zxf90CsSeRl7ixlcdAOTUCRSyv5jAfRW1laeP5Z2quLzWmV3Bs31MfAtgBsgikluEVe3KMfw-vDkz0Lit7TXMDC-2jlg=s4800-w800-h600"],
+ "ChIJnWZD6CRhLxMRTlQfuPEOXD0":["https://lh3.googleusercontent.com/place-photos/AJRVUZPVcvXbhmhWF1eVAG5juvop2F4-G6fDOw942SWPYLxDddu6ZKuTGEdv0blfDfewZvh85PGq2dWHZrLURL18RUqr__9HpZSraD6GpzEq7qH2IkpePYRJnVl9EwmPBpB2J7fThCd3l-k8Fh-0Ntw8XN9WnA=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZMU-pGYZqRucvVTqpAQPDUAD3FxdDTAdk-MDHV7_uliGyO8oDzf7jzCXCJGOXa3kHBkanwditpjZe6ZoIiblm65wPa3KWGP0XS-kuVzc0GqkWepS6Fl6EaKAtt8rUTVp6T32twz5BusQB28A_vFKieWfw=s4800-w800-h600"],
+ "ChIJy_CuUkdhLxMRnF3vy_K-Umw":["https://lh3.googleusercontent.com/place-photos/AJRVUZPBDDIiROqqOvHMh8rGvE6QqnOzeGXK48fs7fkosDvoL_VafvcOLlnmqVzwk3P2tCaHGwyVRRgq1D56_wZVJnCfqDzvFMDigyIoLxET-Sx9exUAcIoIDHDPeAej4qGPZzsDo_0kP-NDgChrqMg=s4800-w800-h544","https://lh3.googleusercontent.com/place-photos/AJRVUZOE8ickjgBHUSGFSOw_6RiPFVgtQpZvRhkssFwl0LfmP6JHaEj4sGM9K4b6aLxJu71Wj2yzWtADFYs0OIST2OEyGnBrfj3cMmVmyBimHIXISQjh-Cl8BLMavBsg6QVLD9LXfNH5dyBvN7qPpw=s4800-w800-h600"],
+ "ChIJ2Ti8x_hgLxMRvObpYnLE6gQ":["https://lh3.googleusercontent.com/place-photos/AJRVUZNiHXEOstjRbQjDy0DhZg_webuNiSXCFYV7czYIdZqrWvloLUDNaExqB9YFAJ3O0PUsRFw3jZ4kiLKl5mzeGmjy4oggd03v-MmXmbXPfshXX1XTCpMvAp8kufCrbuE2vjL45DF8o2Q1qlauDg=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZMum5NFG9XlaMqH21AKQHaekMl410uJIEUZQdgYJv-7eaGO1RNXJhZntCS1qgTr4Y6jamsAeipoKJbczTOpS73qDOhUs0TiotAsF5H43PAzGDZXdjWyTCzCRpJ54OJWvAZNEWIs6pRtzSb9wSo=s4800-w800-h600"],
+ "ChIJzRDszdVhLxMRORcobYK7kdM":["https://lh3.googleusercontent.com/place-photos/AJRVUZNNSs6h0CK0SY-JgDFa7pM1kofzBd0U4EuH1ifEd_UAuSgCi44m4GAB09F42fAF3bxIrUB52SJa7dQXyMvoABMD4e0VmN1qBuitffMz8EH8pnZrG98whwvUrSgg4Qke-reDUyxrroYMwoV7HpL-kU3pWA=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZPTrv94AuG5ex9qxBO6t4F2qzn1wliKOHaicQVvZQlR2OUAkbyD3pMW2_CfzZcmIuKsnXy7rBD28esFhNqIlMaFo_Mvgt4t1fYiV9C0FHBSdnnbS6tsGLvNuKh7Rcb5btAWsjeapkCM1cNXD0oOWlQs-Q=s4800-w800-h600"],
+ "ChIJm_qkL5BhLxMRSUj4PSiVJIw":["https://lh3.googleusercontent.com/place-photos/AJRVUZPHiJHLwyA59UqRdWf_VjovpMXDupeRlB9wPSbeDbMLHTKvFBs9cMsE6EFOoKxAS7Z2X6dVLPsfHRHJiNK92uA_sN7WvhE2wlBmsN2FOlvk1CUsAj1t75ugKZOccrM-9DOvJH7EFBMgcgb_2w=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZOImRERtjUkuWDVJGDeQQijevxMyK3_RgP-a3tJLKeChKtKe-Sx-EUKWtdieAfTZp6Nn5YZF13tOcCnkSAtv_HaPa4Msp4wByMu4-mnqy6iK1Z-U8dVGbjLzo6nuyHij033EiX3e2Uc6ncG_PAtfzzxxA=s4800-w800-h600"],
+ "ChIJF6x2KlZgLxMRiTnR5W35hQs":["https://lh3.googleusercontent.com/place-photos/AJRVUZMl7YalTOyP0SNHxpf6JMxMYuVB2zWW6h1an08D6MGwU7_Z7hAEy2ePRCcmYtKCiJurtXTeujF7jyHejJ2ePyjpmsB-T7HzVOSLF8JsBhIFScG55_2p1lhZ9BUUmuFxeJwe7tYtisAT8mcXbg=s4800-w800-h600","https://lh3.googleusercontent.com/place-photos/AJRVUZOnjROlkPe9XEObaoJzjDygOqTh_z_XG4Cg9sYDBYGtV0uh8CI80vyUWpXaDRWNv9oeCvnrvrtAFmT67oXGF_8FjIWjYg2lw99wK1u8Y75YGi53Sq_evrMr1jHj-e3Rg4Re6AZnidesqBHASRY=s4800-w800-h600"]
+};
+
+const venues=[
+ {name:"ViVi – Le Serre",zona:"Monte Mario",tipo:"giardino",rating:4.4,lo:45,hi:70,lat:41.9282784,lng:12.4456301,site:"http://vivileserre.com/",tel:"+39 06 8398 6929",pid:"ChIJ0_sa6KlhLxMRLl6UzJM1qJo",note:"Serre luminose e verde: il taglio più informale e leggero, formato brunch-garden."},
+ {name:"Terrazza Mirador",zona:"Gianicolo",tipo:"giardino",rating:4.3,lo:50,hi:75,lat:41.898965,lng:12.4610209,site:"https://www.terrazzamirador.it/",tel:"+39 351 871 6027",pid:"ChIJI87qzVVhLxMRdbVaRwmImyU",note:"Giardino dentro un hotel con vista Vaticano. Ottimo rapporto qualità/prezzo."},
+ {name:"Mùn Rooftop",zona:"Esquilino",tipo:"rooftop",rating:4.6,lo:50,hi:75,lat:41.8989367,lng:12.4967791,site:"https://munrooftoprome.com/",tel:"+39 06 4577 4508",pid:"ChIJp8pzSYphLxMRMEaU4vmm_Wg",note:"Cocktail bar su tetto affacciato su Santa Maria Maggiore. Bravi al banco."},
+ {name:"47 Circus Roof Garden",zona:"Teatro Marcello",tipo:"rooftop",rating:4.3,lo:55,hi:80,lat:41.889659,lng:12.4813654,site:"http://www.47circusroofgarden.com/",tel:"+39 348 016 2378",pid:"ChIJsdV0ikpgLxMR1L6n-81pZTg",note:"Roof garden raccolto e di carattere: centratissimo proprio sui 30."},
+ {name:"Terrazza delle 5 Lune",zona:"Navona",tipo:"rooftop",rating:4.4,lo:55,hi:80,lat:41.9005975,lng:12.4724022,site:"https://terrazza5lune.it/",tel:"+39 06 4542 9400",pid:"ChIJg34OftBhLxMRzRPrIlNrcr0",note:"Centrale e scenografica, scorcio su San Pietro. Già abituata agli eventi."},
+ {name:"Masa Rooftop",zona:"S. Maria Maggiore",tipo:"rooftop",rating:4.4,lo:55,hi:80,lat:41.8974915,lng:12.497232,site:"https://masarooftop.it/",tel:"+39 338 229 3943",pid:"ChIJ-3BA3ANhLxMRE1YQNfjQJXk",note:"Terrazza con la basilica davanti, cucina di taglio tapas."},
+ {name:"The Vista",zona:"Pantheon",tipo:"rooftop",rating:4.6,lo:60,hi:85,lat:41.8971795,lng:12.4763309,site:"https://www.thevistarooftop.com/",tel:"+39 345 974 4553",pid:"ChIJPfN8W3xhLxMRplwz2H_lOR8",note:"Centralissimo tra Largo Argentina e il Pantheon, vocazione cocktail."},
+ {name:"8th Floor",zona:"Trastevere",tipo:"rooftop",rating:4.8,lo:60,hi:90,lat:41.8801112,lng:12.4662818,site:"https://trilussapalace.com/rooftop",tel:"+39 06 588 1963",pid:"ChIJMxaeegBhLxMRD41RTx3Aft8",note:"Intimo e ben tenuto, sul Trilussa Palace. Misura perfetta per un gruppo medio."},
+ {name:"Hi-Res",zona:"Piazza del Popolo",tipo:"rooftop",rating:4.5,lo:70,hi:100,lat:41.9093282,lng:12.4775174,site:"http://www.highrestaurant.com/",tel:"+39 06 321 2905",pid:"ChIJYTIvwfhgLxMRHzTEdGWB0JQ",note:"Cucina più curata e mood contemporaneo, a due passi dal Popolo."},
+ {name:"Terrazza Les Étoiles",zona:"Prati / Vaticano",tipo:"rooftop",rating:4.4,lo:80,hi:120,lat:41.9047376,lng:12.4619649,site:"https://www.terrazzalesetoiles.com/",tel:"+39 06 686386",pid:"ChIJD05o711gLxMROQZrzcirO1k",note:"Cupola di San Pietro frontale: l'effetto-wow classico, registro più formale."},
+ {name:"Le Terrazze al Colosseo",zona:"Colosseo",tipo:"rooftop",rating:4.6,lo:80,hi:120,lat:41.8884984,lng:12.4972262,site:"https://www.leterrazzealcolosseo.it/",tel:"+39 371 576 9886",pid:"ChIJdTjSxM5hLxMRaxIVUZ79nXs",note:"Vista diretta sul Colosseo, struttura rodata su matrimoni ed eventi."},
+ {name:"Oltre Il Giardino",zona:"Roma Sud",tipo:"giardino",rating:4.7,lo:90,hi:140,lat:41.8480289,lng:12.5272513,site:"http://www.oltreilgiardinoeventi.com/",tel:"+39 333 827 8419",pid:"ChIJkXAtnx6KJRMR2NFjTHq1iqM",note:"Vera villa-wedding con giardino curatissimo, fuori dal centro.",flag:"min. alti"},
+ {name:"Casina Valadier",zona:"Pincio",tipo:"giardino",rating:4.5,lo:120,hi:180,lat:41.9102065,lng:12.4797446,site:"https://www.casinavaladier.it/",tel:"+39 06 6992 2090",pid:"ChIJHVzf4f5gLxMRM1GL6ClUDVM",note:"Neoclassica, terrazza e giardino panoramico: la più premium e istituzionale.",flag:"premium"},
+ {name:"Rynocero",zona:"Velabro / Bocca della Verità",tipo:"rooftop",rating:4.4,lo:90,hi:130,lat:41.8890939,lng:12.4826009,site:"http://www.rhinocerosroma.com/",tel:"+39 06 678 4467",pid:"ChIJJeHxZuNhLxMR6esd80TmOVU",note:"Rooftop di design del Rhinoceros — Fondazione Alda Fendi, palazzo firmato Jean Nouvel — sopra Bocca della Verità.",flag:"design"},
+ {name:"Terrazza Borromini",zona:"Piazza Navona",tipo:"rooftop",rating:4.2,lo:90,hi:130,lat:41.8989145,lng:12.4724032,site:"https://www.terrazzaborromini.com/",tel:"+39 391 311 4523",pid:"ChIJI8bCVUVgLxMRXxbvlQ5ccIU",note:"In cima a un palazzo del Seicento: una delle viste più spettacolari su Piazza Navona. Magica al tramonto."},
+ {name:"Zuma Rome",zona:"Palazzo Fendi",tipo:"rooftop",rating:4.4,lo:100,hi:150,lat:41.9044854,lng:12.4783148,site:"https://www.zumarestaurant.com/en/rome",tel:"+39 06 9926 6622",pid:"ChIJVby3HVRgLxMRCT2x_x0Qa24",note:"Terrazza-bar sul Palazzo Fendi: cucina izakaya e mixology di respiro internazionale.",flag:"premium"},
+ {name:"Settimo",zona:"Via Veneto",tipo:"rooftop",rating:4.4,lo:75,hi:110,lat:41.9076548,lng:12.4865942,site:"https://restaurantsandbars.accor.com/fr/restaurant/1312_R001",tel:"+39 06 4780 22998",pid:"ChIJ4U0igKphLxMRvhbxnPgos-I",note:"Rooftop panoramico del Sofitel a Via Veneto, raffinato e con vista a 360° sui tetti."},
+ {name:"Cielo Rooftop",zona:"Trinità dei Monti",tipo:"rooftop",rating:4.6,lo:95,hi:140,lat:41.9058098,lng:12.4844462,site:"https://www.roccofortehotels.com/it/hotels-and-resorts/hotel-de-la-ville/ristoranti-bar/cielo-restaurant/",tel:"+39 06 9779 3716",pid:"ChIJi4Jp6M5hLxMRQCP76THpJtU",note:"In cima alla scalinata di Trinità dei Monti (Rocco Forte): la vista abbraccia tutta Roma. Fine dining e cocktail.",flag:"premium"},
+ {name:"Divinity",zona:"Pantheon",tipo:"rooftop",rating:4.5,lo:80,hi:120,lat:41.8980272,lng:12.4760083,site:"https://www.thepantheonhotel.com/divinity-ristorante/",tel:"+39 06 8780 7060",pid:"ChIJnWZD6CRhLxMRTlQfuPEOXD0",note:"Terrazza affacciata su Sant'Ivo e le cupole del centro, a un passo dal Pantheon."},
+ {name:"La Grande Bellezza",zona:"Piazza della Repubblica",tipo:"rooftop",rating:4.7,lo:90,hi:130,lat:41.902135,lng:12.496035,site:"https://www.anantara.com/en/palazzo-naiadi-rome",tel:"+39 06 489381",pid:"ChIJy_CuUkdhLxMRnF3vy_K-Umw",note:"Rooftop con piscina dell'Anantara Palazzo Naiadi, su Piazza della Repubblica.",flag:"premium"},
+ {name:"Le Jardin de Russie",zona:"Piazza del Popolo",tipo:"giardino",rating:4.5,lo:110,hi:160,lat:41.9099435,lng:12.4774581,site:"https://www.roccofortehotels.com/it/hotels-and-resorts/hotel-de-russie/ristoranti-bar/le-jardin/",tel:"+39 06 3288 8870",pid:"ChIJ2Ti8x_hgLxMRvObpYnLE6gQ",note:"Il giardino terrazzato dell'Hotel de Russie (Rocco Forte): un'oasi verde nascosta tra il Popolo e il Babuino. Il più scenografico dei giardini.",flag:"premium"},
+ {name:"Hotel Locarno",zona:"Piazza del Popolo",tipo:"giardino",rating:4.7,lo:75,hi:110,lat:41.9096832,lng:12.4747579,site:"https://www.barlocarnoroma.com/",tel:"+39 06 361 0841",pid:"ChIJzRDszdVhLxMRORcobYK7kdM",note:"Storico hotel Liberty con cortile-giardino appartato e un roof: atmosfera d'autore, lontano dalla folla.",flag:"d'autore"},
+ {name:"Etere Rooftop",zona:"Via di Ripetta",tipo:"rooftop",rating:4.8,lo:80,hi:120,lat:41.908438,lng:12.4759534,site:"https://www.palazzoripetta.com/it/dining/etere-rooftop.html",tel:"+39 06 322 2381",pid:"ChIJm_qkL5BhLxMRSUj4PSiVJIw",note:"Il rooftop del Palazzo Ripetta: raccolto, curato e di recente apertura, perfetto per gruppi piccoli-medi.",flag:"nuovo"},
+ {name:"AcquaRoof – Terrazza Molinari",zona:"Ripetta / Lungotevere",tipo:"rooftop",rating:4.5,lo:85,hi:125,lat:41.9087768,lng:12.4755651,site:"https://www.acquaroof.it/",tel:"+39 06 320 0655",pid:"ChIJF6x2KlZgLxMRiTnR5W35hQs",note:"Terrazza panoramica sul lungotevere a Ripetta, bistrot di mare con vista aperta sui tetti."},
+];
+venues.sort((a,b)=>a.lo-b.lo||a.hi-b.hi);
+venues.forEach((v,i)=>{
+  v.id=i+1;
+  v.maps="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(v.name+" Roma")+"&query_place_id="+v.pid;
+  v.telhref="tel:"+v.tel.replace(/\s/g,"");
+  v.photos=(PHOTOS[v.pid]||[]).map(u=>u.replace(/=s\d+-w\d+-h\d+$/,"=w500-h360"));
+});
+
+const pos=v=>((v-SCALE_MIN)/(SCALE_MAX-SCALE_MIN))*100;
+const fmt=n=>n.toLocaleString('it-IT');
+const stops=[{p:48,c:[107,123,79]},{p:95,c:[201,154,63]},{p:170,c:[176,83,58]}];
+const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+function bandColor(m){if(m<=stops[0].p)return rgb(stops[0].c);if(m>=stops[2].p)return rgb(stops[2].c);
+  const a=m<=stops[1].p?stops[0]:stops[1],b=m<=stops[1].p?stops[1]:stops[2],t=(m-a.p)/(b.p-a.p);
+  return rgb(a.c.map((v,i)=>Math.round(v+(b.c[i]-v)*t)));}
+
+/* axis */
+const axisEl=document.getElementById('axis');
+TICKS.forEach(t=>{const e=document.createElement('span');e.className='tick';e.style.left=pos(t)+'%';e.textContent='€'+t;axisEl.appendChild(e);});
+
+/* map */
+const map=L.map('map',{scrollWheelZoom:false}).setView([41.8955,12.478],13);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  attribution:'© OpenStreetMap, © CARTO',subdomains:'abcd',maxZoom:19
+}).addTo(map);
+const markers={};
+venues.forEach(v=>{
+  const icon=L.divIcon({className:'',html:`<div class="pin ${v.tipo}"><span>${v.id}</span></div>`,iconSize:[28,28],iconAnchor:[14,26],popupAnchor:[0,-24]});
+  const m=L.marker([v.lat,v.lng],{icon}).addTo(map);
+  const photoHTML=v.photos.length
+    ? `<div class="pop-photos">${v.photos.map(p=>`<img src="${p}" alt="${v.name}" loading="lazy" onerror="this.style.display='none'">`).join('')}</div>`
+    : '';
+  m.bindPopup(
+    photoHTML+
+    `<div class="pop-name">${v.id}. ${v.name}</div>`+
+    `<div class="pop-meta">${v.zona} · ★ ${v.rating.toFixed(1)} · ${v.tipo}</div>`+
+    `<div class="pop-price">€${v.lo}–${v.hi} /pax · ≈ €${fmt(v.lo*30)}–${fmt(v.hi*30)} per 30</div>`+
+    `<div class="pop-links"><a href="${v.site}" target="_blank" rel="noopener">Sito ↗</a>`+
+    `<a href="${v.maps}" target="_blank" rel="noopener">Maps ↗</a>`+
+    `<a href="${v.telhref}">Chiama</a></div>`,
+    {maxWidth:280,minWidth:248}
+  );
+  markers[v.id]=m;
+});
+
+function updateMapFilter(f){
+  venues.forEach(v=>{const m=markers[v.id];
+    if(f==='all'||v.tipo===f){if(!map.hasLayer(m))m.addTo(map);}
+    else if(map.hasLayer(m))map.removeLayer(m);});
+}
+
+/* list */
+const listEl=document.getElementById('list');
+let state={filter:'all',sort:'price'};
+function render(){
+  let rows=venues.filter(v=>state.filter==='all'||v.tipo===state.filter);
+  rows.sort((a,b)=>{switch(state.sort){
+    case 'price':return a.lo-b.lo||a.hi-b.hi;
+    case 'price-desc':return b.lo-a.lo||b.hi-a.hi;
+    case 'rating':return b.rating-a.rating;
+    case 'name':return a.name.localeCompare(b.name,'it');}});
+  listEl.innerHTML='';
+  rows.forEach((v,i)=>{
+    const mid=(v.lo+v.hi)/2,col=bandColor(mid),left=pos(v.lo),width=pos(v.hi)-pos(v.lo);
+    const row=document.createElement('div');
+    row.className='row';row.dataset.id=v.id;row.style.animationDelay=(i*45)+'ms';
+    row.innerHTML=`
+      <div class="name">
+        <div class="rank">${String(v.id).padStart(2,'0')}</div>
+        <div class="ntext">
+          <div class="vtop"><a class="vname" href="${v.site}" target="_blank" rel="noopener">${v.name}</a></div>
+          <div class="sub">
+            <span class="badge ${v.tipo}">${v.tipo}</span>
+            <span class="zona">${v.zona}</span>
+            <span class="rate">★ <b>${v.rating.toFixed(1)}</b></span>
+          </div>
+          <div class="links">
+            <a href="${v.site}" target="_blank" rel="noopener">Sito ↗</a>
+            <a href="${v.maps}" target="_blank" rel="noopener">Maps ↗</a>
+            <a href="${v.telhref}">${v.tel}</a>
+            <button class="pinbtn" data-pin="${v.id}">Sulla mappa</button>
+          </div>
+        </div>
+      </div>
+      <div class="bandcell"><div class="bandtrack">
+        <div class="band" style="left:${left}%;width:0;background:${col}" data-w="${width}">
+          <span class="cap lo">€${v.lo}</span><span class="cap hi">€${v.hi}</span>
+        </div></div></div>
+      <div class="totcell">
+        <div class="ppax">€${v.lo}–${v.hi} <span>/pax</span></div>
+        <div class="tot">≈ €${fmt(v.lo*30)}–${fmt(v.hi*30)} tot.</div>
+      </div>
+      <div class="note">${v.note}${v.flag?`<span class="flag">${v.flag}</span>`:''}</div>`;
+    listEl.appendChild(row);
+  });
+  requestAnimationFrame(()=>document.querySelectorAll('.band').forEach(b=>b.style.width=b.dataset.w+'%'));
+}
+
+function focusVenue(id){
+  const v=venues.find(x=>x.id==id);if(!v)return;
+  map.setView([v.lat,v.lng],15,{animate:true});
+  markers[id].openPopup();
+  document.querySelectorAll('.row').forEach(r=>r.classList.toggle('active',r.dataset.id==id));
+  document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+document.getElementById('filters').addEventListener('click',e=>{
+  const btn=e.target.closest('.chip');if(!btn)return;
+  state.filter=btn.dataset.filter;
+  document.querySelectorAll('#filters .chip').forEach(c=>c.setAttribute('aria-pressed',c===btn));
+  updateMapFilter(state.filter);render();
+});
+document.getElementById('sort').addEventListener('change',e=>{state.sort=e.target.value;render();});
+listEl.addEventListener('click',e=>{
+  const b=e.target.closest('.pinbtn');if(b){e.preventDefault();focusVenue(b.dataset.pin);}
+});
+
+render();
+</script>
+</body>
+</html>
