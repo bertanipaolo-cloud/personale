@@ -198,8 +198,8 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:15;width:100%;heigh
   const $ = id => document.getElementById(id);
   const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
   let state = {step:0, done:false};
-  try { const s = JSON.parse(localStorage.getItem("cl-libretto")||"null"); if (s && typeof s.step==="number") state = s; } catch(e){}
-  const save = () => { try { localStorage.setItem("cl-libretto", JSON.stringify(state)); } catch(e){} };
+  try { localStorage.removeItem("cl-libretto"); } catch(e){}
+  const save = () => {};
 
   $("h1").src = M.hero1; $("h2").src = M.hero2;
 
