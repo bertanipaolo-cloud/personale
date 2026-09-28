@@ -58,8 +58,7 @@ h1 .amp{font-family:var(--hand);font-weight:700;color:var(--sail);font-size:.8em
 @media (prefers-reduced-motion:reduce){.track .glider{transition:none}}
 .stamps{display:flex;gap:6px}
 .stampl{width:36px;height:42px;display:grid;place-items:center;font:800 22px var(--display);color:#6f86a3;background:transparent;border:2px dashed #6f86a3;transition:all .5s}
-.stampl.on{background:var(--card);color:var(--stamp);border:0;
-  -webkit-mask:radial-gradient(circle 3px at 3px 3px,#0000 98%,#000) -3px -3px/7px 7px;mask:radial-gradient(circle 3px at 3px 3px,#0000 98%,#000) -3px -3px/7px 7px;transform:rotate(-4deg)}
+.stampl.on{background:var(--card);color:var(--stamp);border:3px dotted var(--ink);outline:2px solid var(--card);transform:rotate(-4deg)}
 .stampl.on:nth-child(even){transform:rotate(4deg)}
 
 /* album pages */
@@ -84,8 +83,7 @@ h1 .amp{font-family:var(--hand);font-weight:700;color:var(--sail);font-size:.8em
 @media (max-width:700px){.pc-l{border-right:0;border-bottom:1.5px dashed var(--grid)}}
 .label{font:600 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--sail)}
 .riddle{font:800 clamp(22px,3.2vw,30px)/1.18 var(--display);letter-spacing:-.01em;margin:0;text-wrap:balance}
-.big-stamp{justify-self:end;width:86px;height:100px;background:var(--stamp);color:var(--card);display:grid;place-items:center;font:800 48px var(--display);transform:rotate(5deg);
-  -webkit-mask:radial-gradient(circle 4px at 4px 4px,#0000 98%,#000) -4px -4px/10px 10px;mask:radial-gradient(circle 4px at 4px 4px,#0000 98%,#000) -4px -4px/10px 10px}
+.big-stamp{justify-self:end;width:86px;height:100px;background:var(--stamp);color:var(--card);display:grid;place-items:center;font:800 48px var(--display);transform:rotate(5deg);border:4px dotted var(--card);outline:3px solid var(--stamp)}
 .lines{display:grid;gap:12px}
 form{display:grid;gap:10px}
 input{width:100%;font:700 28px var(--hand);color:var(--ink);padding:6px 2px;border:0;border-bottom:2px solid var(--ink);background:transparent;border-radius:0}
@@ -165,11 +163,13 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:15;width:100%;heigh
   const STEPS = [
     { q:"Prima di tutto l'equipaggio. Due copiloti a quattro zampe, sempre sul sedile dietro, sempre in prima fila per il cibo. Come si chiamano?",
       a:["peppina e gino","gino e peppina","peppina gino","gino peppina","peppina","gino"],
+      kw:["peppina","gino","pepina"],
       hint:"Una ha un nome da nonna del sud, l'altro da barista di paese.",
       ok:"Peppina e Gino. Il vero centro di gravità di casa.",
       snaps:[["video","big"],["d_pile",""],["d_lick","small"]] },
     { q:"Quel giorno due persone hanno tenuto i nervi saldi anche per voi, hanno firmato accanto a voi e hanno controllato che nessuno scappasse. Chi erano?",
       a:["pibe","paolo","carlotta","paolo e carlotta","carlotta e paolo","pibe e carlotta","carlotta e pibe","i testimoni","testimoni","il pibe"],
+      kw:["carlotta","paolo","pibe","testimoni","testimone","carlo"],
       hint:"Guardate chi firma questo libretto. Basta anche uno dei due nomi.",
       ok:"Esatto. Il ruolo è a vita, ci dispiace per voi.",
       snaps:[["w_seduti","big"],["w_firma",""],["w_sala","big"]] },
@@ -180,16 +180,18 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:15;width:100%;heigh
       snaps:[["w_si","big"],["w_brinda",""],["w_discorso",""],["w_sposati","small"]] },
     { q:"Non si vede e non si tocca, ma sale. I gabbiani la cercano, i piloti pure. È una colonna d'aria calda: come si chiama?",
       a:["termica","termiche","la termica","corrente ascensionale","corrente termica"],
+      kw:["termic","ascension"],
       hint:"Fa rima con chimica. Quella tra voi c'è già, questa la trovate in cielo.",
       ok:"Aria calda che sale, un po' come le discussioni su chi guida.",
       snaps:[["jazzo",""],["walk","small"],["cake",""]] },
     { q:"L'ultima. È dappertutto, non si vede, e tra poco sarà l'unica cosa sotto i vostri piedi.",
       a:["aria","l aria","vento","il vento","vuoto","il vuoto","cielo","il cielo","niente","nulla"],
+      kw:["aria","vento","cielo","vuoto"],
       hint:"Fate un bel respiro. Ecco, quella.",
       ok:"Solo aria. Tenetevi forte.",
       snaps:[["dinner","big"],["d_sofa",""]] }
   ];
-  const FINAL = { a:["parapendio","parapendii","il parapendio","un parapendio","volo in parapendio"],
+  const FINAL = { kw:["parapend"], a:["parapendio","parapendii","il parapendio","un parapendio","volo in parapendio"],
     hint:"Una vela colorata, niente motore, si decolla correndo giù da un pendio. E il pendio ce l'ha pure nel nome." };
   const WRONG = ["No. Riprovate.","Quasi. Anzi, no.","I testimoni non approvano.","Peppina è delusa. Riprovate.","Leonardo, lascia rispondere Camilla.","Gino ha già capito. Voi?"];
   const ALT = 200, MAX = 1000;
@@ -235,7 +237,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:15;width:100%;heigh
     pg.querySelectorAll("video").forEach(v=>{ v.muted=true; const p=v.play(); if(p&&p.catch) p.catch(()=>{}); });
   }
 
-  function postcard({label,letter,q,answers,hint,onOk}){
+  function postcard({label,letter,q,answers,kw=[],hint,onOk}){
     const play=$("play");
     play.innerHTML=`<article class="postcard" id="card">
       <div class="pc-l"><div class="label"></div><p class="riddle"></p>
@@ -254,7 +256,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:15;width:100%;heigh
     let miss=0; const input=$("answer"), msg=card.querySelector(".msg");
     card.querySelector("form").addEventListener("submit",e=>{
       e.preventDefault(); const v=norm(input.value); if(!v) return;
-      if (answers.map(norm).includes(v)) return onOk();
+      if (answers.map(norm).includes(v) || kw.some(k=>v.split(" ").some(w=>w.startsWith(k)))) return onOk();
       miss++; msg.textContent=WRONG[(miss-1)%WRONG.length];
       card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
       if (miss>=2) hintEl.hidden=false;
@@ -266,11 +268,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:15;width:100%;heigh
     if (state.done) return reveal(false);
     if (state.step<STEPS.length){
       const i=state.step, s=STEPS[i];
-      postcard({label:`Indizio ${i+1} di ${STEPS.length} · verso ${((i+1)*ALT).toLocaleString("it-IT")} m`, letter:LETTERS[i], q:s.q, answers:s.a, hint:s.hint,
+      postcard({label:`Indizio ${i+1} di ${STEPS.length} · verso ${((i+1)*ALT).toLocaleString("it-IT")} m`, letter:LETTERS[i], q:s.q, answers:s.a, kw:s.kw, hint:s.hint,
         onOk(){ state.step++; save(); render(i); scrollToEl($("p"+i)); }});
     } else {
       postcard({label:"Ultimo passo · 1.000 m", letter:"…", q:"Avete cinque francobolli: P, A, R, A, P. Sono l'inizio di una parola. Completatela e scoprite il regalo.",
-        answers:FINAL.a, hint:FINAL.hint, onOk(){ state.done=true; save(); reveal(true); scrollToEl($("pass")); }});
+        answers:FINAL.a, kw:FINAL.kw, hint:FINAL.hint, onOk(){ state.done=true; save(); reveal(true); scrollToEl($("pass")); }});
     }
   }
   function scrollToEl(el){ if(!el) return; const top=el.getBoundingClientRect().top+scrollY-110; scrollTo({top,behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"}); }
